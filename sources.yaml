@@ -1,0 +1,361 @@
+# =====================================================================
+# Golf Media Monitor — lähteet
+# =====================================================================
+# Jokainen lähde voi määritellä 1–3 hakutapaa. Järjestys: rss → html → google_news.
+# Ensimmäinen, joka tuottaa artikkeleita, voittaa.
+#
+#   rss:          suora RSS/Atom-syöte (luotettavin)
+#   html:         uutislistaussivu + CSS-selektorit (jos ei RSS:ää)
+#   google_news:  domain, josta muodostetaan Google News site: -haku (fallback)
+#
+# tab: "golfliitot" (vain viralliset liitot) | "golfmediat" (mediat ja muut
+#      organisaatiot) | "urheilu_liitot" (suomalaiset lajiliitot)
+# Uusi lähde = uusi lohko tähän tiedostoon. Koodia ei tarvitse muuttaa.
+# =====================================================================
+
+defaults:
+  html_selectors:
+    container: ["article", ".news-item", ".news-card", ".card", ".teaser", ".post", ".views-row", ".list-item"]
+    title: ["h2", "h3", "h4", ".entry-title", ".card-title", ".title"]
+    date: ["time", ".date", ".entry-date", ".publish-date", ".meta-date"]
+    summary: [".ingress", ".entry-summary", ".excerpt", ".card-text", "p"]
+
+sources:
+  # ================= SUOMALAISET LAJILIITOT =================
+  - id: palloliitto
+    name: Suomen Palloliitto
+    tab: urheilu_liitot
+    country: Suomi
+    language: fi
+    google_news: palloliitto.fi
+
+  - id: jaakiekkoliitto
+    name: Suomen Jääkiekkoliitto
+    tab: urheilu_liitot
+    country: Suomi
+    language: fi
+    google_news: leijonat.fi
+
+  - id: olympiakomitea
+    name: Suomen Olympiakomitea
+    tab: urheilu_liitot
+    country: Suomi
+    language: fi
+    google_news: olympiakomitea.fi
+
+  - id: hiihtoliitto
+    name: Suomen Hiihtoliitto
+    tab: urheilu_liitot
+    country: Suomi
+    language: fi
+    google_news: hiihtoliitto.fi
+
+  - id: yleisurheilu
+    name: Suomen Urheiluliitto (yleisurheilu)
+    tab: urheilu_liitot
+    country: Suomi
+    language: fi
+    google_news: yleisurheilu.fi
+
+  - id: salibandy
+    name: Suomen Salibandyliitto
+    tab: urheilu_liitot
+    country: Suomi
+    language: fi
+    google_news: salibandy.fi
+
+  - id: koripallo
+    name: Suomen Koripalloliitto
+    tab: urheilu_liitot
+    country: Suomi
+    language: fi
+    google_news: basket.fi
+
+  - id: lentopallo
+    name: Suomen Lentopalloliitto
+    tab: urheilu_liitot
+    country: Suomi
+    language: fi
+    google_news: lentopalloliitto.fi
+
+  - id: tennis
+    name: Suomen Tennisliitto
+    tab: urheilu_liitot
+    country: Suomi
+    language: fi
+    google_news: tennis.fi
+
+  - id: uimaliitto
+    name: Suomen Uimaliitto
+    tab: urheilu_liitot
+    country: Suomi
+    language: fi
+    google_news: uimaliitto.fi
+
+  - id: suunnistus
+    name: Suomen Suunnistusliitto
+    tab: urheilu_liitot
+    country: Suomi
+    language: fi
+    google_news: suunnistusliitto.fi
+
+  - id: pesapallo
+    name: Pesäpalloliitto
+    tab: urheilu_liitot
+    country: Suomi
+    language: fi
+    google_news: pesis.fi
+
+  - id: voimistelu
+    name: Suomen Voimisteluliitto
+    tab: urheilu_liitot
+    country: Suomi
+    language: fi
+    google_news: voimistelu.fi
+
+  - id: ratsastus
+    name: Suomen Ratsastajainliitto
+    tab: urheilu_liitot
+    country: Suomi
+    language: fi
+    google_news: ratsastus.fi
+
+  - id: okm_liikunta
+    name: OKM — liikunta-asiat
+    tab: urheilu_liitot
+    country: Suomi
+    language: fi
+    # Rajataan ministeriön uutisista liikuntaan liittyvät
+    google_news_query: 'site:okm.fi liikunta OR urheilu OR valtionavustus'
+
+  # ================= GOLFMEDIAT & MUUT ORGANISAATIOT =================
+  - id: golfpiste
+    name: Golfpiste (media)
+    tab: golfmediat
+    country: Suomi
+    language: fi
+    rss: https://golfpiste.com/feed/
+    google_news: golfpiste.com
+
+  - id: golf_business_news
+    name: Golf Business News (media)
+    tab: golfmediat
+    country: Kansainvälinen
+    language: en
+    google_news: golfbusinessnews.com
+
+  - id: geo_foundation
+    name: GEO Foundation / Sustainable Golf
+    tab: golfmediat
+    country: Kansainvälinen
+    language: en
+    # sustainable.golf ei ole Google News -indeksissä -> hakulause
+    google_news_query: '"GEO Foundation" OR "sustainable golf"'
+
+  - id: norsk_golf
+    name: Norsk Golf (media)
+    tab: golfmediat
+    country: Norja
+    language: "no"
+    google_news: norskgolf.no
+
+  # ================= GOLFLIITOT — POHJOISMAAT =================
+  - id: sgf_sweden
+    name: Svenska Golfförbundet (SGF)
+    tab: golfliitot
+    country: Ruotsi
+    language: sv
+    # golf.se on JS-renderöity eikä Google News indeksoi sitä -> käytetään
+    # SGF:n Cision-pressisivua, joka renderöityy palvelimella.
+    html:
+      url: https://news.cision.com/se/svenska-golfforbundet
+      selectors:
+        container: ["article", ".item", ".news-item", ".listItem", ".release-item", "li"]
+    google_news: golf.se
+
+  - id: svensk_golf
+    name: Svensk Golf (media)
+    tab: golfmediat
+    country: Ruotsi
+    language: sv
+    # SGF:n kustantama golfmedia (vrt. Golfpiste Suomessa) — kattaa Golfsverigen
+    # uutiset paremmin kuin liiton harvat tiedotteet.
+    rss: https://www.svenskgolf.se/feed/
+    google_news: svenskgolf.se
+
+  - id: dgu_denmark
+    name: Dansk Golf Union (DGU)
+    tab: golfliitot
+    country: Tanska
+    language: da
+    html:
+      url: https://www.danskgolfunion.dk/pressemeddelelser
+    google_news: danskgolfunion.dk
+
+  - id: ngf_norway
+    name: Norges Golfforbund (NGF)
+    tab: golfliitot
+    country: Norja
+    language: "no"
+    rss: https://www.golfforbundet.no/feed/
+    html:
+      url: https://www.golfforbundet.no/ngf-nytt/
+    google_news: golfforbundet.no
+
+  - id: gsi_iceland
+    name: Golfsamband Íslands (GSÍ)
+    tab: golfliitot
+    country: Islanti
+    language: is
+    html:
+      url: https://www.golf.is/frettir/
+    google_news: golf.is
+
+  - id: sterf
+    name: STERF (Scandinavian Turfgrass Research)
+    tab: golfliitot
+    country: Pohjoismaat
+    language: en
+    rss: https://sterf.org/feed/
+    html:
+      url: https://sterf.org/news/
+
+  # ================= GOLFLIITOT — EUROOPPA =================
+  - id: ega
+    name: European Golf Association (EGA)
+    tab: golfliitot
+    country: Eurooppa
+    language: en
+    html:
+      url: https://www.ega-golf.ch/news-and-media
+    google_news: ega-golf.ch
+
+  - id: england_golf
+    name: England Golf
+    tab: golfliitot
+    country: Englanti
+    language: en
+    rss: https://www.englandgolf.org/feed/
+    html:
+      url: https://www.englandgolf.org/news/
+    google_news: englandgolf.org
+
+  - id: scottish_golf
+    name: Scottish Golf
+    tab: golfliitot
+    country: Skotlanti
+    language: en
+    rss: https://www.scottishgolf.org/feed/
+    html:
+      url: https://www.scottishgolf.org/news/
+    google_news: scottishgolf.org
+
+  - id: golf_ireland
+    name: Golf Ireland
+    tab: golfliitot
+    country: Irlanti
+    language: en
+    html:
+      url: https://www.golfireland.ie/news
+    google_news: golfireland.ie
+
+  - id: dgv_germany
+    name: Deutscher Golf Verband (DGV)
+    tab: golfliitot
+    country: Saksa
+    language: de
+    html:
+      url: https://www.golf.de/publish/dgv-aktuell/
+    google_news: golf.de
+
+  - id: ffgolf
+    name: Fédération française de golf
+    tab: golfliitot
+    country: Ranska
+    language: fr
+    html:
+      url: https://www.ffgolf.org/Actus
+    google_news: ffgolf.org
+
+  - id: ngf_netherlands
+    name: Nederlandse Golf Federatie (NGF)
+    tab: golfliitot
+    country: Hollanti
+    language: nl
+    rss: https://www.ngf.nl/feed/
+    html:
+      url: https://www.ngf.nl/nieuws/
+    google_news: ngf.nl
+
+  - id: rfeg_spain
+    name: Real Federación Española de Golf
+    tab: golfliitot
+    country: Espanja
+    language: es
+    html:
+      url: https://www.rfegolf.es/Noticias
+    google_news: rfegolf.es
+
+  - id: fig_italy
+    name: Federazione Italiana Golf (FIG)
+    tab: golfliitot
+    country: Italia
+    language: it
+    html:
+      url: https://www.federgolf.it/news/
+    google_news: federgolf.it
+
+  - id: ogv_austria
+    name: Österreichischer Golf-Verband (ÖGV)
+    tab: golfliitot
+    country: Itävalta
+    language: de
+    rss: https://www.golf.at/feed/
+    html:
+      url: https://www.golf.at/news/
+    google_news: golf.at
+
+  - id: swiss_golf
+    name: Swiss Golf
+    tab: golfliitot
+    country: Sveitsi
+    language: de-ch
+    # swissgolf.ch on JS-renderöity -> seurataan liittoa hakulauseella
+    # sveitsiläisellä lokaalilla.
+    google_news_query: '"Swiss Golf"'
+
+  - id: estonian_golf
+    name: Eesti Golfi Liit
+    tab: golfliitot
+    country: Viro
+    language: et
+    html:
+      url: https://golf.ee/uudised/
+    google_news: golf.ee
+
+  - id: pzg_poland
+    name: Polski Związek Golfa (PZG)
+    tab: golfliitot
+    country: Puola
+    language: pl
+    # pzgolf.pl on muuttanut osoitteeseen polski.golf — RSS toimii siellä.
+    rss: https://polski.golf/feed
+    google_news: polski.golf
+
+  # ================= GOLFLIITOT — KANSAINVÄLISET =================
+  - id: randa
+    name: The R&A
+    tab: golfliitot
+    country: Kansainvälinen
+    language: en
+    # randa.org on JS-renderöity eikä Google News indeksoi sitä -> seurataan
+    # R&A:ta koskevaa uutisointia hakulauseella. Artikkelit voivat olla
+    # muiden medioiden kirjoittamia.
+    google_news_query: '"The R&A" golf'
+
+  - id: usga
+    name: USGA
+    tab: golfliitot
+    country: USA
+    language: en
+    google_news: usga.org
