@@ -320,9 +320,10 @@ sources:
     tab: golfliitot
     country: Sveitsi
     language: de-ch
-    # swissgolf.ch on JS-renderöity -> seurataan liittoa hakulauseella
-    # sveitsiläisellä lokaalilla.
-    google_news_query: '"Swiss Golf"'
+    # VAIN liiton oma domain. Huom: swissgolf.ch on JS-renderöity eikä
+    # välttämättä Google News -indeksissä -> lähde voi jäädä hiljaiseksi,
+    # mutta epävirallisia lähteitä ei haluta liittovälilehdelle.
+    google_news_query: 'site:swissgolf.ch'
 
   - id: estonian_golf
     name: Eesti Golfi Liit
@@ -348,10 +349,16 @@ sources:
     tab: golfliitot
     country: Kansainvälinen
     language: en
-    # randa.org on JS-renderöity eikä Google News indeksoi sitä -> seurataan
-    # R&A:ta koskevaa uutisointia hakulauseella. Artikkelit voivat olla
-    # muiden medioiden kirjoittamia.
-    google_news_query: '"The R&A" golf'
+    # Vain R&A:n oma sivusto. Huom: randa.org ei välttämättä ole Google News
+    # -indeksissä -> lähde voi olla hiljainen, mutta vain virallinen kelpaa.
+    google_news: randa.org
+
+  - id: theopen
+    name: The Open (virallinen)
+    tab: golfliitot
+    country: Kansainvälinen
+    language: en
+    google_news: theopen.com
 
   - id: usga
     name: USGA

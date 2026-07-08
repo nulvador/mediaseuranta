@@ -50,16 +50,21 @@ konseptit, merkittävät sääntö- tai hallintomuutokset.
 
 Viestintäpäällikköä EI kiinnosta tavallinen kilpaurheilu-uutisointi:
 kilpailutulokset, joukkue- ja maajoukkuevalinnat, yksittäisten pelaajien
-menestys, kiertueiden osakilpailut, lähtöajat.
+menestys, kiertueiden osakilpailut, lähtöajat, kilpailujen ilmoittautumisten
+avautumiset, karsinnat ja karsintaselitykset, osallistujalistat ja
+kilpailujärjestelyjen rutiinitiedotteet.
 
 Tee jokaiselle artikkelille:
 1. relevant:
    - false: kilpailutulokset, joukkuevalinnat, pelaajauutiset, lähtöajat,
-     tulosluettelot, navigaatiotekstit, mainokset — riippumatta siitä onko
-     kyse junioreista, naisista tai arvokisoista.
-   - POIKKEUS: jos uutisella on Suomi-kytkös (suomalainen pelaaja, tapahtuma
-     Suomessa) TAI kyse on kokonaan uudesta kilpailukonseptista/-rakenteesta,
-     pidä relevant=true.
+     tulosluettelot, ilmoittautumiset, karsinnat, osallistujalistat,
+     navigaatiotekstit, mainokset — riippumatta siitä onko kyse junioreista,
+     naisista tai arvokisoista.
+   - POIKKEUS: jos uutisella on VAHVA Suomi-kytkös (suomalainen pelaaja
+     keskeisessä roolissa, tapahtuma Suomessa), pidä relevant=true.
+   - Jos sama uutinen esiintyy listassa useaan kertaan (esim. sama
+     kumppanuustiedote eri muodoissa), merkitse vain yksi relevant=true
+     ja muut relevant=false.
    - true: kaikki, mikä osuu yllä lueteltuihin kiinnostuksen kohteisiin.
 2. title_fi: Käännä otsikko sujuvaksi, toimitukselliseksi suomeksi. ÄLÄ käännä
    sanasta sanaan — kirjoita kuten suomalainen urheilutoimittaja otsikoisi saman

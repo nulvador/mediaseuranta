@@ -41,6 +41,8 @@ def main() -> int:
     parser.add_argument("--no-email", action="store_true")
     parser.add_argument("--reanalyze", action="store_true",
                         help="analysoi kaikki artikkelit uudelleen (esim. promptin muututtua)")
+    parser.add_argument("--purge", metavar="SOURCE_ID",
+                        help="poista lähteen kaikki artikkelit ennen keruuta")
     parser.add_argument("--import-json", metavar="PATH")
     args = parser.parse_args()
 
@@ -54,6 +56,10 @@ def main() -> int:
         n = store.import_legacy_json(conn, args.import_json)
         log.info("Migraatio valmis: %d artikkelia tuotu", n)
         return 0
+
+    if args.purge:
+        n = store.purge_source(conn, args.purge)
+        log.info("Poistettu %d artikkelia lähteestä %s", n, args.purge)
 
     if args.reanalyze:
         n = store.reset_analysis(conn)

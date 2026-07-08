@@ -7,3 +7,4 @@ data/*.db-*
 output/
 logs/
 .pytest_cache/
+.DS_Store

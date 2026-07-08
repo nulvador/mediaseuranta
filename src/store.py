@@ -152,6 +152,13 @@ def sync_tabs(conn: sqlite3.Connection, sources) -> int:
     return changed
 
 
+def purge_source(conn: sqlite3.Connection, source_id: str) -> int:
+    """Poista lähteen kaikki artikkelit (esim. kun lähteen hakutapa on muuttunut)."""
+    cur = conn.execute("DELETE FROM articles WHERE source_id=?", (source_id,))
+    conn.commit()
+    return cur.rowcount
+
+
 def reset_analysis(conn: sqlite3.Connection) -> int:
     """Palauta kaikki analysoidut/hylätyt 'new'-tilaan uudelleenanalyysiä varten."""
     cur = conn.execute(
