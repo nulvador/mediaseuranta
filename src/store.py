@@ -123,6 +123,12 @@ def report_articles(conn: sqlite3.Connection, days: int) -> list[dict]:
     return out
 
 
+def last_run_finished_at(conn: sqlite3.Connection) -> str | None:
+    """Edellisen (ennen tätä ajoa valmistuneen) ajon lopetusaika, raportin uutuusmerkintää varten."""
+    row = conn.execute("SELECT finished_at FROM runs ORDER BY id DESC LIMIT 1").fetchone()
+    return row["finished_at"] if row else None
+
+
 def log_run(conn, started_at, new_articles, analyzed, failed_batches, healths) -> None:
     conn.execute(
         """INSERT INTO runs (started_at, finished_at, new_articles, analyzed,

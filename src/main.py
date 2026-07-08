@@ -48,6 +48,7 @@ def main() -> int:
     log = logging.getLogger("main")
     started = datetime.datetime.now().isoformat(timespec="seconds")
     conn = store.connect()
+    previous_run_at = store.last_run_finished_at(conn)
 
     if args.import_json:
         n = store.import_legacy_json(conn, args.import_json)
@@ -100,7 +101,8 @@ def main() -> int:
             log.info("Ei analysoitavaa.")
 
     # ── Vaihe 3: raportti ─────────────────────────────────────────────
-    run_summary = {"new_articles": new_count, "analyzed": analyzed}
+    run_summary = {"new_articles": new_count, "analyzed": analyzed,
+                   "previous_run_at": previous_run_at}
     report_arts = store.report_articles(conn, config.REPORT_DAYS)
     path = write_report(report_arts, healths, run_summary)
     log.info("Raportti: %s (%d artikkelia)", path, len(report_arts))

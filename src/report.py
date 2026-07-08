@@ -9,8 +9,19 @@ PRIO_EMOJI = {"korkea": "🔴", "keskitaso": "🟡", "matala": "🟢"}
 
 def generate_report(articles: list[dict], healths: list[dict], run_summary: dict) -> str:
     today = datetime.date.today().strftime("%d.%m.%Y")
+    previous_run_at = run_summary.get("previous_run_at")
     for a in articles:
         a["prio_emoji"] = PRIO_EMOJI.get(a.get("priority") or "", "")
+        a["is_new"] = bool(previous_run_at) and (a.get("fetched_at") or "") > previous_run_at
+
+    new_since_last = sum(1 for a in articles if a["is_new"])
+    prev_line = ""
+    if previous_run_at:
+        try:
+            prev_dt = datetime.datetime.fromisoformat(previous_run_at)
+            prev_line = f" · edellinen ajo {prev_dt.strftime('%d.%m. klo %H:%M')}"
+        except ValueError:
+            pass
 
     data_json = json.dumps(articles, ensure_ascii=False).replace("</", "<\\/")
     health_json = json.dumps(healths, ensure_ascii=False).replace("</", "<\\/")
@@ -48,6 +59,11 @@ h1 {{ color:var(--green); font-size:1.5rem; margin:0 0 4px; }}
 .card p.sum {{ margin:4px 0 0; font-size:.86rem; color:#444; }}
 .tag {{ display:inline-block; background:#e8f0ea; color:var(--green2); font-size:.7rem;
   padding:2px 8px; border-radius:10px; margin:6px 4px 0 0; }}
+.new-badge {{ display:inline-block; background:#c1121f; color:#fff; font-size:.65rem;
+  font-weight:700; letter-spacing:.03em; padding:1px 7px; border-radius:8px;
+  margin-left:6px; vertical-align:middle; }}
+.card.is-new {{ box-shadow:0 0 0 2px #c1121f33; }}
+.only-new {{ display:flex; align-items:center; gap:5px; font-size:.85rem; color:#334; }}
 .count {{ color:#667; font-size:.8rem; margin:8px 0; }}
 details {{ margin-top:32px; background:#fff; border-radius:10px; padding:12px 16px; }}
 summary {{ cursor:pointer; color:var(--green); font-weight:600; }}
@@ -59,6 +75,7 @@ footer {{ color:#aab; font-size:.72rem; text-align:center; margin-top:36px; }}
 
 <h1>🏌️ Golfliiton mediakatsaus — {today}</h1>
 <div class="sub">{run_summary.get('new_articles', 0)} uutta artikkelia tässä ajossa ·
+{new_since_last} uutta edellisen ajon jälkeen ei-nähtyä{prev_line} ·
 {len(articles)} artikkelia raportissa (viim. {config.REPORT_DAYS} pv) ·
 AI-käännökset ja -tiivistelmät ovat luonnoksia — tarkista faktat ennen jatkokäyttöä.</div>
 
@@ -78,6 +95,7 @@ AI-käännökset ja -tiivistelmät ovat luonnoksia — tarkista faktat ennen jat
   <select id="theme"><option value="">Kaikki teemat</option></select>
   <select id="country"><option value="">Kaikki maat</option></select>
   <input id="search" type="search" placeholder="Hae otsikoista ja tiivistelmistä…">
+  <label class="only-new"><input type="checkbox" id="onlyNew"> Näytä vain uudet</label>
 </div>
 
 <div class="count" id="count"></div>
@@ -111,19 +129,27 @@ function initFilters() {{
 function render() {{
   const q = $("search").value.toLowerCase();
   const prio = $("prio").value, theme = $("theme").value, country = $("country").value;
+  const onlyNew = $("onlyNew").checked;
   let items = ARTICLES.filter(a => a.tab === tab
     && (!prio || a.priority === prio)
     && (!theme || (a.themes||[]).includes(theme))
     && (!country || a.country === country)
+    && (!onlyNew || a.is_new)
     && (!q || ((a.title_fi||"")+(a.title||"")+(a.summary_fi||"")).toLowerCase().includes(q)));
-  items.sort((a,b) => (PRIO_ORDER[a.priority]??3)-(PRIO_ORDER[b.priority]??3)
+  // Uusimmat edellisen ajon jälkeen + tärkeimmät Golfliitolle nousevat kärkeen,
+  // vanhat mutta jo aiemmin nähdyt artikkelit pysyvät listassa alempana.
+  items.sort((a,b) => (b.is_new - a.is_new)
+    || (PRIO_ORDER[a.priority]??3)-(PRIO_ORDER[b.priority]??3)
     || (b.published||"").localeCompare(a.published||""));
-  $("count").textContent = items.length + " artikkelia";
+  const newCount = items.filter(a => a.is_new).length;
+  $("count").textContent = items.length + " artikkelia"
+    + (newCount ? ` · ${{newCount}} uutta edellisen ajon jälkeen` : "");
   $("list").innerHTML = items.map(a => `
-    <div class="card ${{a.priority||""}}">
+    <div class="card ${{a.priority||""}} ${{a.is_new ? "is-new" : ""}}">
       <div class="meta">${{a.prio_emoji||""}} <strong>${{esc(a.source_name)}}</strong>
         · ${{esc(a.country)}} · ${{esc(a.published||"pvm ei tiedossa")}}
-        ${{a.category ? " · " + esc(a.category) : ""}}</div>
+        ${{a.category ? " · " + esc(a.category) : ""}}
+        ${{a.is_new ? '<span class="new-badge">UUSI</span>' : ""}}</div>
       <h3><a href="${{esc(a.url||"#")}}" target="_blank" rel="noopener">${{esc(a.title_fi||a.title)}}</a></h3>
       ${{a.title_fi && a.title_fi !== a.title ? `<p class="orig">${{esc(a.title)}}</p>` : ""}}
       <p class="sum">${{esc(a.summary_fi||a.summary||"")}}</p>
@@ -141,7 +167,7 @@ document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {{
   document.querySelectorAll(".tabs button").forEach(x => x.classList.remove("active"));
   b.classList.add("active"); tab = b.dataset.tab; render();
 }});
-["prio","theme","country"].forEach(id => $(id).onchange = render);
+["prio","theme","country","onlyNew"].forEach(id => $(id).onchange = render);
 $("search").oninput = render;
 
 initFilters(); render(); renderHealth();
