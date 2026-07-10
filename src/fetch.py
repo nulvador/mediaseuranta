@@ -8,7 +8,7 @@ import datetime
 import logging
 import re
 from typing import Optional
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import feedparser
 import requests
@@ -83,6 +83,15 @@ def fetch_rss(source: Source, url: str, since: datetime.date,
         link = (entry.get("link") or "").strip()
         if not title or len(title) < MIN_TITLE_LEN or not link:
             continue
+
+        # Google News site:-haku kattaa myös alidomainit (esim.
+        # performance.golf.at) -> hyväksy vain pääsivusto ja www.
+        if google_news and source.google_news:
+            src_href = (entry.get("source") or {}).get("href") or ""
+            host = urlparse(src_href).netloc.lower()
+            dom = source.google_news.lower()
+            if host and host not in (dom, f"www.{dom}"):
+                continue
 
         date_obj = None
         for key in ("published_parsed", "updated_parsed"):

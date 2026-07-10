@@ -39,7 +39,7 @@ class AnalyzedItem(BaseModel):
 
 
 _PROMPT_GOLF = """Olet Suomen Golfliiton VIESTINTÄPÄÄLLIKÖN mediamonitoroinnin
-analyytikko. Saat listan golfliittojen, golfmedioiden ja golfalan
+analyytikko. Saat listan golfliittojen ja golfalan virallisten
 organisaatioiden uutisia.
 
 Viestintäpäällikköä kiinnostaa VAIN se, mistä Suomen Golfliitto voi saada aitoa

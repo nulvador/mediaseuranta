@@ -152,6 +152,16 @@ def sync_tabs(conn: sqlite3.Connection, sources) -> int:
     return changed
 
 
+def purge_missing_sources(conn: sqlite3.Connection, sources) -> int:
+    """Poista artikkelit, joiden lähde ei ole enää sources.yamlissa."""
+    ids = [s.id for s in sources]
+    placeholders = ",".join("?" * len(ids))
+    cur = conn.execute(
+        f"DELETE FROM articles WHERE source_id NOT IN ({placeholders})", ids)
+    conn.commit()
+    return cur.rowcount
+
+
 def purge_source(conn: sqlite3.Connection, source_id: str) -> int:
     """Poista lähteen kaikki artikkelit (esim. kun lähteen hakutapa on muuttunut)."""
     cur = conn.execute("DELETE FROM articles WHERE source_id=?", (source_id,))

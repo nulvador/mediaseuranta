@@ -81,7 +81,6 @@ AI-käännökset ja -tiivistelmät ovat luonnoksia — tarkista faktat ennen jat
 
 <div class="tabs">
   <button data-tab="golfliitot" class="active">Golfliitot maailmalla</button>
-  <button data-tab="golfmediat">Golfmediat &amp; muut</button>
   <button data-tab="urheilu_liitot">Suomalaiset lajiliitot</button>
 </div>
 

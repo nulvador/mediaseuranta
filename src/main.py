@@ -41,8 +41,8 @@ def main() -> int:
     parser.add_argument("--no-email", action="store_true")
     parser.add_argument("--reanalyze", action="store_true",
                         help="analysoi kaikki artikkelit uudelleen (esim. promptin muututtua)")
-    parser.add_argument("--purge", metavar="SOURCE_ID",
-                        help="poista lähteen kaikki artikkelit ennen keruuta")
+    parser.add_argument("--purge", metavar="SOURCE_ID", action="append",
+                        help="poista lähteen kaikki artikkelit ennen keruuta (voi toistaa)")
     parser.add_argument("--import-json", metavar="PATH")
     args = parser.parse_args()
 
@@ -57,9 +57,9 @@ def main() -> int:
         log.info("Migraatio valmis: %d artikkelia tuotu", n)
         return 0
 
-    if args.purge:
-        n = store.purge_source(conn, args.purge)
-        log.info("Poistettu %d artikkelia lähteestä %s", n, args.purge)
+    for source_id in (args.purge or []):
+        n = store.purge_source(conn, source_id)
+        log.info("Poistettu %d artikkelia lähteestä %s", n, source_id)
 
     if args.reanalyze:
         n = store.reset_analysis(conn)
@@ -74,6 +74,9 @@ def main() -> int:
         moved = store.sync_tabs(conn, sources)
         if moved:
             log.info("Välilehtisynkronointi: %d artikkelia siirretty", moved)
+        removed = store.purge_missing_sources(conn, sources)
+        if removed:
+            log.info("Siivous: %d artikkelia poistetuilta lähteiltä", removed)
         since = datetime.date.today() - datetime.timedelta(days=config.LOOKBACK_DAYS)
         log.info("Keruu: %d lähdettä, artikkelit %s alkaen", len(sources), since)
         articles, healths = fetch_all(sources, since)

@@ -102,7 +102,7 @@ def test_import_legacy_json(conn, tmp_path):
 def test_sources_yaml_loads():
     sources, defaults = load_sources()
     assert len(sources) >= 30
-    assert {s.tab for s in sources} == {"golfliitot", "golfmediat", "urheilu_liitot"}
+    assert {s.tab for s in sources} == {"golfliitot", "urheilu_liitot"}
     # jokaisella lähteellä vähintään yksi hakutapa
     for s in sources:
         assert s.rss or s.html_url or s.google_news, f"{s.id}: ei hakutapaa"

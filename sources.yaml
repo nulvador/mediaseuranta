@@ -8,8 +8,7 @@
 #   html:         uutislistaussivu + CSS-selektorit (jos ei RSS:ää)
 #   google_news:  domain, josta muodostetaan Google News site: -haku (fallback)
 #
-# tab: "golfliitot" (vain viralliset liitot) | "golfmediat" (mediat ja muut
-#      organisaatiot) | "urheilu_liitot" (suomalaiset lajiliitot)
+# tab: "golfliitot" (vain viralliset liitot) | "urheilu_liitot" (suomalaiset lajiliitot)
 # Uusi lähde = uusi lohko tähän tiedostoon. Koodia ei tarvitse muuttaa.
 # =====================================================================
 
@@ -41,6 +40,7 @@ sources:
     tab: urheilu_liitot
     country: Suomi
     language: fi
+    rss: https://www.olympiakomitea.fi/feed/
     google_news: olympiakomitea.fi
 
   - id: hiihtoliitto
@@ -48,6 +48,7 @@ sources:
     tab: urheilu_liitot
     country: Suomi
     language: fi
+    rss: https://hiihtoliitto.fi/feed/
     google_news: hiihtoliitto.fi
 
   - id: yleisurheilu
@@ -55,6 +56,7 @@ sources:
     tab: urheilu_liitot
     country: Suomi
     language: fi
+    rss: https://www.yleisurheilu.fi/feed/
     google_news: yleisurheilu.fi
 
   - id: salibandy
@@ -62,6 +64,7 @@ sources:
     tab: urheilu_liitot
     country: Suomi
     language: fi
+    rss: https://salibandy.fi/feed/
     google_news: salibandy.fi
 
   - id: koripallo
@@ -69,6 +72,7 @@ sources:
     tab: urheilu_liitot
     country: Suomi
     language: fi
+    rss: https://basket.fi/feed/
     google_news: basket.fi
 
   - id: lentopallo
@@ -76,13 +80,14 @@ sources:
     tab: urheilu_liitot
     country: Suomi
     language: fi
-    google_news: lentopalloliitto.fi
+    rss: https://www.lentopalloliitto.fi/feed/
 
   - id: tennis
     name: Suomen Tennisliitto
     tab: urheilu_liitot
     country: Suomi
     language: fi
+    rss: https://www.tennis.fi/feed/
     google_news: tennis.fi
 
   - id: uimaliitto
@@ -97,6 +102,7 @@ sources:
     tab: urheilu_liitot
     country: Suomi
     language: fi
+    rss: https://www.suunnistusliitto.fi/feed/
     google_news: suunnistusliitto.fi
 
   - id: pesapallo
@@ -111,6 +117,7 @@ sources:
     tab: urheilu_liitot
     country: Suomi
     language: fi
+    rss: https://www.voimistelu.fi/feed/
     google_news: voimistelu.fi
 
   - id: ratsastus
@@ -128,37 +135,6 @@ sources:
     # Rajataan ministeriön uutisista liikuntaan liittyvät
     google_news_query: 'site:okm.fi liikunta OR urheilu OR valtionavustus'
 
-  # ================= GOLFMEDIAT & MUUT ORGANISAATIOT =================
-  - id: golfpiste
-    name: Golfpiste (media)
-    tab: golfmediat
-    country: Suomi
-    language: fi
-    rss: https://golfpiste.com/feed/
-    google_news: golfpiste.com
-
-  - id: golf_business_news
-    name: Golf Business News (media)
-    tab: golfmediat
-    country: Kansainvälinen
-    language: en
-    google_news: golfbusinessnews.com
-
-  - id: geo_foundation
-    name: GEO Foundation / Sustainable Golf
-    tab: golfmediat
-    country: Kansainvälinen
-    language: en
-    # sustainable.golf ei ole Google News -indeksissä -> hakulause
-    google_news_query: '"GEO Foundation" OR "sustainable golf"'
-
-  - id: norsk_golf
-    name: Norsk Golf (media)
-    tab: golfmediat
-    country: Norja
-    language: "no"
-    google_news: norskgolf.no
-
   # ================= GOLFLIITOT — POHJOISMAAT =================
   - id: sgf_sweden
     name: Svenska Golfförbundet (SGF)
@@ -172,16 +148,6 @@ sources:
       selectors:
         container: ["article", ".item", ".news-item", ".listItem", ".release-item", "li"]
     google_news: golf.se
-
-  - id: svensk_golf
-    name: Svensk Golf (media)
-    tab: golfmediat
-    country: Ruotsi
-    language: sv
-    # SGF:n kustantama golfmedia (vrt. Golfpiste Suomessa) — kattaa Golfsverigen
-    # uutiset paremmin kuin liiton harvat tiedotteet.
-    rss: https://www.svenskgolf.se/feed/
-    google_news: svenskgolf.se
 
   - id: dgu_denmark
     name: Dansk Golf Union (DGU)
