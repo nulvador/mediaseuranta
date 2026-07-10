@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>fi.golf.mediamonitor</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>cd /Users/nuutti/golf_monitor &amp;&amp; NO_OPEN=1 ./run.sh >> logs/launchd.log 2>&amp;1</string>
+  </array>
+
+  <!-- Tiistai (2) ja perjantai (5) klo 10:15.
+       Kellonaika on tarkoituksella hieman yli 10, koska Geminin ilmaiskiintiö
+       nollautuu n. klo 10 Suomen aikaa — näin ajo saa aina tuoreen kiintiön. -->
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict>
+      <key>Weekday</key><integer>2</integer>
+      <key>Hour</key><integer>10</integer>
+      <key>Minute</key><integer>15</integer>
+    </dict>
+    <dict>
+      <key>Weekday</key><integer>5</integer>
+      <key>Hour</key><integer>10</integer>
+      <key>Minute</key><integer>15</integer>
+    </dict>
+  </array>
+</dict>
+</plist>
