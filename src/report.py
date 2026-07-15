@@ -1,4 +1,7 @@
-"""HTML-raportin generointi: itsenäinen tiedosto, data upotettuna, suodatus selaimessa."""
+"""HTML-raportin generointi: itsenäinen tiedosto, data upotettuna, suodatus selaimessa.
+
+Ulkoasu: Suomi Golf -brändi (British Racing Green -paletti, Montserrat).
+"""
 import datetime
 import json
 
@@ -31,82 +34,153 @@ def generate_report(articles: list[dict], healths: list[dict], run_summary: dict
 <html lang="fi"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Golfkatsaus {today}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-:root {{ --green:#003F20; --green2:#1a5c38; --bg:#f4f6f4; }}
+:root {{
+  /* Suomi Golf — British Racing Green -paletti */
+  --sg-racing-green: #003F20;
+  --sg-dark-green:   #051A05;
+  --sg-light-green:  #EBF4F0;
+  --sg-grey-700:     #575B59;
+  --sg-grey-200:     #E6E8EA;
+  --sg-white:        #FFFFFF;
+  --sg-green:        #00D2A0;   /* energinen aksentti */
+  --prio-korkea:     #FF4B5D;
+  --prio-keskitaso:  #FF883E;
+  --prio-matala:     #00D2A0;
+}}
 * {{ box-sizing:border-box; }}
-body {{ font-family:-apple-system,'Segoe UI',sans-serif; max-width:960px; margin:0 auto;
-       padding:24px 16px; background:var(--bg); color:#222; }}
-h1 {{ color:var(--green); font-size:1.5rem; margin:0 0 4px; }}
-.sub {{ color:#667; font-size:.85rem; margin-bottom:16px; }}
-.tabs {{ display:flex; gap:8px; margin:16px 0 12px; flex-wrap:wrap; }}
-.tabs button {{ border:1px solid var(--green); background:#fff; color:var(--green);
-  padding:8px 18px; border-radius:20px; cursor:pointer; font-size:.9rem; font-weight:600; }}
-.tabs button.active {{ background:var(--green); color:#fff; }}
-.filters {{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }}
-.filters select, .filters input {{ padding:7px 10px; border:1px solid #ccc; border-radius:8px;
-  font-size:.85rem; background:#fff; }}
-.filters input {{ flex:1; min-width:180px; }}
-.card {{ background:#fff; border-left:5px solid #ccc; border-radius:10px;
-  padding:12px 16px; margin-bottom:10px; }}
-.card.korkea {{ border-left-color:#c1121f; }}
-.card.keskitaso {{ border-left-color:#e0a800; }}
-.card.matala {{ border-left-color:#2a9d8f; }}
-.meta {{ font-size:.72rem; color:#888; margin-bottom:4px; }}
-.card h3 {{ margin:0 0 2px; font-size:.95rem; }}
-.card h3 a {{ color:var(--green); text-decoration:none; }}
+body {{ font-family:'Montserrat',-apple-system,sans-serif; margin:0;
+       background:var(--sg-light-green); color:var(--sg-grey-700); }}
+
+/* ── Hero ── */
+header {{ background:var(--sg-racing-green); color:var(--sg-white);
+  padding:36px 24px 88px; }}
+.hero {{ max-width:1360px; margin:0 auto; }}
+h1 {{ font-weight:900; text-transform:uppercase; letter-spacing:-.02em;
+  font-size:clamp(1.5rem, 3.5vw, 2.4rem); margin:0 0 6px; color:var(--sg-white); }}
+h1 .date {{ color:var(--sg-green); }}
+.hero .rule {{ width:64px; height:5px; background:var(--sg-green); margin:14px 0; border:0; }}
+.sub {{ color:var(--sg-light-green); font-size:.82rem; line-height:1.6; max-width:900px; opacity:.9; }}
+
+/* ── Työkalupalkki ── */
+.toolbar {{ max-width:1360px; margin:-56px auto 20px; padding:0 24px; }}
+.toolbar-inner {{ background:var(--sg-white); border-radius:18px;
+  box-shadow:0 8px 28px rgba(5,26,5,.14); padding:16px 18px; }}
+.tabs {{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }}
+.tabs button {{ font-family:inherit; font-weight:700; text-transform:uppercase;
+  letter-spacing:.02em; font-size:.78rem; border:2px solid var(--sg-racing-green);
+  background:var(--sg-white); color:var(--sg-racing-green);
+  padding:9px 20px; border-radius:999px; cursor:pointer; transition:all .15s; }}
+.tabs button:hover {{ background:var(--sg-light-green); }}
+.tabs button.active {{ background:var(--sg-racing-green); color:var(--sg-white); }}
+.filters {{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }}
+.filters select, .filters input[type=search] {{ font-family:inherit; padding:8px 12px;
+  border:1.5px solid var(--sg-grey-200); border-radius:10px; font-size:.82rem;
+  background:var(--sg-white); color:var(--sg-grey-700); }}
+.filters input[type=search] {{ flex:1; min-width:180px; }}
+.filters select:focus, .filters input:focus {{ outline:2px solid var(--sg-green); border-color:transparent; }}
+.only-new {{ display:flex; align-items:center; gap:6px; font-size:.8rem; font-weight:600;
+  color:var(--sg-racing-green); accent-color:var(--sg-racing-green); }}
+
+/* ── Ruudukko ── */
+main {{ max-width:1360px; margin:0 auto; padding:0 24px 40px; }}
+.count {{ font-size:.8rem; font-weight:600; color:var(--sg-grey-700); margin:4px 2px 14px; }}
+#list {{ display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:18px; }}
+
+/* ── Kortti ── */
+.card {{ background:var(--sg-white); border-radius:16px; overflow:hidden;
+  display:flex; flex-direction:column; box-shadow:0 2px 10px rgba(5,26,5,.07);
+  border-top:5px solid var(--sg-grey-200); transition:transform .15s, box-shadow .15s; }}
+.card:hover {{ transform:translateY(-3px); box-shadow:0 10px 24px rgba(5,26,5,.14); }}
+.card.korkea    {{ border-top-color:var(--prio-korkea); }}
+.card.keskitaso {{ border-top-color:var(--prio-keskitaso); }}
+.card.matala    {{ border-top-color:var(--prio-matala); }}
+.card.is-new    {{ box-shadow:0 0 0 2.5px var(--sg-green), 0 2px 10px rgba(5,26,5,.07); }}
+.thumb {{ position:relative; width:100%; height:118px; overflow:hidden;
+  background:var(--sg-racing-green); }}
+.thumb svg {{ width:100%; height:100%; display:block; }}
+.thumb .contour {{ fill:none; stroke:var(--sg-light-green); stroke-width:1.4; opacity:.20; }}
+.thumb .contour.accent {{ stroke:var(--sg-green); opacity:.55; }}
+.thumb .green-blob {{ fill:#0C5C33; opacity:.85; }}
+.thumb .bunker {{ fill:var(--sg-grey-200); opacity:.35; }}
+.thumb .stick {{ stroke:var(--sg-light-green); stroke-width:2; }}
+.thumb .flag {{ fill:var(--sg-green); }}
+.thumb .cat {{ position:absolute; left:14px; bottom:10px; color:var(--sg-light-green);
+  font-size:.66rem; font-weight:900; text-transform:uppercase; letter-spacing:.09em; }}
+.card-body {{ padding:14px 16px 16px; display:flex; flex-direction:column; flex:1; }}
+.meta {{ font-size:.68rem; color:var(--sg-grey-700); opacity:.85; margin-bottom:6px;
+  text-transform:uppercase; letter-spacing:.03em; font-weight:600; }}
+.card h3 {{ margin:0 0 4px; font-size:.95rem; font-weight:700; line-height:1.35; }}
+.card h3 a {{ color:var(--sg-racing-green); text-decoration:none; }}
 .card h3 a:hover {{ text-decoration:underline; }}
-.orig {{ font-size:.76rem; color:#999; font-style:italic; margin:0 0 4px; }}
-.card p.sum {{ margin:4px 0 0; font-size:.86rem; color:#444; }}
-.tag {{ display:inline-block; background:#e8f0ea; color:var(--green2); font-size:.7rem;
-  padding:2px 8px; border-radius:10px; margin:6px 4px 0 0; }}
-.new-badge {{ display:inline-block; background:#c1121f; color:#fff; font-size:.65rem;
-  font-weight:700; letter-spacing:.03em; padding:1px 7px; border-radius:8px;
-  margin-left:6px; vertical-align:middle; }}
-.card.is-new {{ box-shadow:0 0 0 2px #c1121f33; }}
-.only-new {{ display:flex; align-items:center; gap:5px; font-size:.85rem; color:#334; }}
-.count {{ color:#667; font-size:.8rem; margin:8px 0; }}
-details {{ margin-top:32px; background:#fff; border-radius:10px; padding:12px 16px; }}
-summary {{ cursor:pointer; color:var(--green); font-weight:600; }}
-table {{ width:100%; border-collapse:collapse; font-size:.8rem; margin-top:10px; }}
-th, td {{ text-align:left; padding:5px 8px; border-bottom:1px solid #eee; }}
-.err {{ color:#c1121f; }}
-footer {{ color:#aab; font-size:.72rem; text-align:center; margin-top:36px; }}
+.orig {{ font-size:.72rem; color:var(--sg-grey-700); opacity:.65; font-style:italic; margin:0 0 6px; }}
+.card p.sum {{ margin:2px 0 10px; font-size:.82rem; line-height:1.5; flex:1; }}
+.tag {{ display:inline-block; background:var(--sg-light-green); color:var(--sg-racing-green);
+  font-size:.66rem; font-weight:700; padding:3px 10px; border-radius:999px; margin:0 5px 4px 0; }}
+.new-badge {{ display:inline-block; background:var(--sg-green); color:var(--sg-dark-green);
+  font-size:.62rem; font-weight:900; letter-spacing:.05em; padding:2px 8px;
+  border-radius:999px; margin-left:6px; vertical-align:middle; }}
+
+/* ── Lähdeterveys & footer ── */
+details {{ margin-top:36px; background:var(--sg-white); border-radius:16px; padding:16px 20px; }}
+summary {{ cursor:pointer; color:var(--sg-racing-green); font-weight:700;
+  text-transform:uppercase; font-size:.8rem; letter-spacing:.03em; }}
+table {{ width:100%; border-collapse:collapse; font-size:.78rem; margin-top:12px; }}
+th {{ text-align:left; color:var(--sg-racing-green); }}
+th, td {{ padding:6px 8px; border-bottom:1px solid var(--sg-grey-200); }}
+.err {{ color:var(--prio-korkea); }}
+footer {{ background:var(--sg-racing-green); color:var(--sg-light-green);
+  text-align:center; font-size:.75rem; padding:26px 16px; margin-top:44px; }}
+footer strong {{ color:var(--sg-white); text-transform:uppercase; letter-spacing:.04em; }}
+footer .tag-line {{ color:var(--sg-green); font-weight:700; margin-top:4px; }}
 </style></head><body>
 
-<h1>🏌️ Golfliiton mediakatsaus — {today}</h1>
-<div class="sub">{run_summary.get('new_articles', 0)} uutta artikkelia tässä ajossa ·
-{new_since_last} uutta edellisen ajon jälkeen ei-nähtyä{prev_line} ·
-{len(articles)} artikkelia raportissa (viim. {config.REPORT_DAYS} pv) ·
-AI-käännökset ja -tiivistelmät ovat luonnoksia — tarkista faktat ennen jatkokäyttöä.</div>
+<header><div class="hero">
+  <h1>Golfliiton mediakatsaus <span class="date">{today}</span></h1>
+  <hr class="rule">
+  <div class="sub">{run_summary.get('new_articles', 0)} uutta artikkelia tässä ajossa ·
+  {new_since_last} uutta edellisen ajon jälkeen{prev_line} ·
+  {len(articles)} artikkelia raportissa (viim. {config.REPORT_DAYS} pv) ·
+  AI-käännökset ja -tiivistelmät ovat luonnoksia — tarkista faktat ennen jatkokäyttöä.</div>
+</div></header>
 
-<div class="tabs">
-  <button data-tab="golfliitot" class="active">Golfliitot maailmalla</button>
-  <button data-tab="urheilu_liitot">Suomalaiset lajiliitot</button>
-</div>
+<div class="toolbar"><div class="toolbar-inner">
+  <div class="tabs">
+    <button data-tab="golfliitot" class="active">Golfliitot maailmalla</button>
+    <button data-tab="urheilu_liitot">Suomalaiset lajiliitot</button>
+  </div>
+  <div class="filters">
+    <select id="prio">
+      <option value="">Kaikki prioriteetit</option>
+      <option value="korkea">🔴 Korkea</option>
+      <option value="keskitaso">🟡 Keskitaso</option>
+      <option value="matala">🟢 Matala</option>
+    </select>
+    <select id="theme"><option value="">Kaikki teemat</option></select>
+    <select id="country"><option value="">Kaikki maat</option></select>
+    <input id="search" type="search" placeholder="Hae otsikoista ja tiivistelmistä…">
+    <label class="only-new"><input type="checkbox" id="onlyNew"> Näytä vain uudet</label>
+  </div>
+</div></div>
 
-<div class="filters">
-  <select id="prio">
-    <option value="">Kaikki prioriteetit</option>
-    <option value="korkea">🔴 Korkea</option>
-    <option value="keskitaso">🟡 Keskitaso</option>
-    <option value="matala">🟢 Matala</option>
-  </select>
-  <select id="theme"><option value="">Kaikki teemat</option></select>
-  <select id="country"><option value="">Kaikki maat</option></select>
-  <input id="search" type="search" placeholder="Hae otsikoista ja tiivistelmistä…">
-  <label class="only-new"><input type="checkbox" id="onlyNew"> Näytä vain uudet</label>
-</div>
+<main>
+  <div class="count" id="count"></div>
+  <div id="list"></div>
 
-<div class="count" id="count"></div>
-<div id="list"></div>
+  <details>
+    <summary>Lähteiden tila viimeisimmässä ajossa</summary>
+    <table><thead><tr><th>Lähde</th><th>Tapa</th><th>Artikkeleita</th><th>Huomiot</th></tr></thead>
+    <tbody id="health"></tbody></table>
+  </details>
+</main>
 
-<details>
-  <summary>Lähteiden tila viimeisimmässä ajossa</summary>
-  <table><thead><tr><th>Lähde</th><th>Tapa</th><th>Artikkeleita</th><th>Huomiot</th></tr></thead>
-  <tbody id="health"></tbody></table>
-</details>
-
-<footer>Automaattinen mediamonitorointi · Suomen Golfliitto · generoitu {today}</footer>
+<footer>
+  <strong>Suomen Golfliitto ry</strong> · Hiomotie 3, 00380 Helsinki · golf.fi<br>
+  Automaattinen mediamonitorointi · generoitu {today}
+  <div class="tag-line">#muntapapelata</div>
+</footer>
 
 <script>
 const ARTICLES = {data_json};
@@ -123,6 +197,32 @@ function initFilters() {{
     `<option value="${{esc(t)}}">${{esc(t)}}</option>`));
   [...new Set(ARTICLES.map(a => a.country).filter(Boolean))].sort().forEach(c =>
     $("country").insertAdjacentHTML("beforeend", `<option value="${{esc(c)}}">${{esc(c)}}</option>`));
+}}
+
+function thumb(a) {{
+  // Topografinen golfkenttä-kuvitus (brändipatterni) — variantti valitaan
+  // deterministisesti, jotta sama artikkeli saa aina saman kuvituksen.
+  const seed = ((a.category||"").length * 7 + (a.source_id||"").length * 3
+                + (a.title_fi||a.title||"").length) % 4;
+  const shift = [0, -60, -120, -30][seed];
+  const flip = seed % 2 ? -1 : 1;
+  return `<div class="thumb">
+    <svg viewBox="0 0 400 118" preserveAspectRatio="xMidYMid slice">
+      <g transform="translate(${{200 + shift}},59) scale(${{flip}},1) translate(-200,-59)">
+        <path class="contour" d="M-30,105 C60,70 130,125 210,95 S330,45 430,80"/>
+        <path class="contour" d="M-30,88 C70,55 140,108 220,80 S335,32 430,62"/>
+        <path class="contour accent" d="M-30,71 C80,42 150,90 230,66 S340,20 430,45"/>
+        <path class="contour" d="M-30,54 C90,30 160,72 240,52 S345,8 430,28"/>
+        <path class="contour" d="M-30,37 C100,18 170,54 250,38 S350,-4 430,12"/>
+        <ellipse class="green-blob" cx="292" cy="62" rx="44" ry="20"/>
+        <ellipse class="bunker" cx="242" cy="92" rx="13" ry="5.5"/>
+        <ellipse class="bunker" cx="345" cy="84" rx="9" ry="4"/>
+        <line class="stick" x1="292" y1="62" x2="292" y2="26"/>
+        <path class="flag" d="M292,26 l17,5.5 -17,5.5 z"/>
+      </g>
+    </svg>
+    <span class="cat">${{esc(a.category||"uutinen")}}</span>
+  </div>`;
 }}
 
 function render() {{
@@ -145,14 +245,17 @@ function render() {{
     + (newCount ? ` · ${{newCount}} uutta edellisen ajon jälkeen` : "");
   $("list").innerHTML = items.map(a => `
     <div class="card ${{a.priority||""}} ${{a.is_new ? "is-new" : ""}}">
-      <div class="meta">${{a.prio_emoji||""}} <strong>${{esc(a.source_name)}}</strong>
-        · ${{esc(a.country)}} · ${{esc(a.published||"pvm ei tiedossa")}}
-        ${{a.category ? " · " + esc(a.category) : ""}}
-        ${{a.is_new ? '<span class="new-badge">UUSI</span>' : ""}}</div>
-      <h3><a href="${{esc(a.url||"#")}}" target="_blank" rel="noopener">${{esc(a.title_fi||a.title)}}</a></h3>
-      ${{a.title_fi && a.title_fi !== a.title ? `<p class="orig">${{esc(a.title)}}</p>` : ""}}
-      <p class="sum">${{esc(a.summary_fi||a.summary||"")}}</p>
-      ${{(a.themes||[]).map(t => `<span class="tag">${{esc(t)}}</span>`).join("")}}
+      ${{thumb(a)}}
+      <div class="card-body">
+        <div class="meta">${{a.prio_emoji||""}} ${{esc(a.source_name)}}
+          · ${{esc(a.country)}} · ${{esc(a.published||"pvm ei tiedossa")}}
+          ${{a.category ? " · " + esc(a.category) : ""}}
+          ${{a.is_new ? '<span class="new-badge">UUSI</span>' : ""}}</div>
+        <h3><a href="${{esc(a.url||"#")}}" target="_blank" rel="noopener">${{esc(a.title_fi||a.title)}}</a></h3>
+        ${{a.title_fi && a.title_fi !== a.title ? `<p class="orig">${{esc(a.title)}}</p>` : ""}}
+        <p class="sum">${{esc(a.summary_fi||a.summary||"")}}</p>
+        <div>${{(a.themes||[]).map(t => `<span class="tag">${{esc(t)}}</span>`).join("")}}</div>
+      </div>
     </div>`).join("") || "<p>Ei artikkeleita valituilla suodattimilla.</p>";
 }}
 

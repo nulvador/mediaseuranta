@@ -62,6 +62,12 @@ def connect(db_path: Path = None) -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.executescript(_SCHEMA)
+    # Migraatiot vanhoille tietokannoille
+    try:
+        conn.execute("ALTER TABLE articles ADD COLUMN image TEXT DEFAULT ''")
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass  # sarake on jo olemassa
     return conn
 
 
@@ -73,11 +79,11 @@ def insert_new(conn: sqlite3.Connection, articles: list[dict]) -> int:
         cur = conn.execute(
             """INSERT OR IGNORE INTO articles
                (url_hash, url, source_id, source_name, tab, country, language,
-                title, summary, published, fetched_at, status)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?, 'new')""",
+                title, summary, published, fetched_at, status, image)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?, 'new', ?)""",
             (url_hash(a), a.get("url"), a["source_id"], a["source_name"], a["tab"],
              a.get("country"), a.get("language"), a["title"], a.get("summary"),
-             a.get("published"), now),
+             a.get("published"), now, a.get("image", "")),
         )
         inserted += cur.rowcount
     conn.commit()

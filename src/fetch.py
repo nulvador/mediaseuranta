@@ -54,7 +54,8 @@ def _http_get(url: str) -> Optional[requests.Response]:
         return None
 
 
-def _article(source: Source, title: str, url: str, date_str: str, summary: str) -> dict:
+def _article(source: Source, title: str, url: str, date_str: str, summary: str,
+             image: str = "") -> dict:
     return {
         "source_id": source.id,
         "source_name": source.name,
@@ -65,7 +66,28 @@ def _article(source: Source, title: str, url: str, date_str: str, summary: str) 
         "url": url,
         "published": date_str,
         "summary": (summary or "")[:400],
+        "image": image or "",
     }
+
+
+def _entry_image(entry) -> str:
+    """Poimi artikkelin kuva RSS-merkinnästä (media-tagit, enclosure tai sisällön <img>)."""
+    for key in ("media_content", "media_thumbnail"):
+        for m in entry.get(key) or []:
+            url = (m or {}).get("url") or ""
+            if url.startswith("http"):
+                return url
+    for lnk in entry.get("links") or []:
+        if lnk.get("rel") == "enclosure" and str(lnk.get("type", "")).startswith("image"):
+            href = lnk.get("href") or ""
+            if href.startswith("http"):
+                return href
+    html = ""
+    if entry.get("content"):
+        html = (entry["content"][0] or {}).get("value", "")
+    html = html or entry.get("summary", "")
+    m = re.search(r'<img[^>]+src=["\'](https?://[^"\']+)', html or "")
+    return m.group(1) if m else ""
 
 
 # ---------------------------------------------------------------- RSS
@@ -108,7 +130,8 @@ def fetch_rss(source: Source, url: str, since: datetime.date,
         if entry.get("summary"):
             summary = BeautifulSoup(entry["summary"], "html.parser").get_text(" ", strip=True)
 
-        articles.append(_article(source, title, link, date_obj.isoformat(), summary))
+        image = "" if google_news else _entry_image(entry)
+        articles.append(_article(source, title, link, date_obj.isoformat(), summary, image))
         if len(articles) >= config.MAX_PER_SOURCE:
             break
     return articles, total
@@ -175,7 +198,14 @@ def fetch_html(source: Source, since: datetime.date) -> tuple[list[dict], int]:
         summary_el = _select_first(c, sel.get("summary", []))
         summary = summary_el.get_text(" ", strip=True) if summary_el else ""
 
-        articles.append(_article(source, title, url, date_str, summary))
+        image = ""
+        img_el = c.find("img")
+        if img_el is not None:
+            src = img_el.get("src") or img_el.get("data-src") or ""
+            if src and not src.startswith("data:"):
+                image = urljoin(source.html_url, src)
+
+        articles.append(_article(source, title, url, date_str, summary, image))
         if len(articles) >= config.MAX_PER_SOURCE:
             break
     return articles, len(containers)
