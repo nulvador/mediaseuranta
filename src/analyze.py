@@ -73,14 +73,22 @@ Tee jokaiselle artikkelille:
 3. summary_fi: 1-2 lauseen tiivistelmä suomeksi otsikon ja ingressin pohjalta.
    Jos ingressiä ei ole, tiivistä otsikon sisältö äläkä keksi yksityiskohtia.
 4. category: yksi näistä: {categories}
-5. priority:
-   - korkea: VAIN jos Golfliitto voisi konkreettisesti soveltaa tätä itse
-     (uusi kampanja-, palvelu-, rahoitus- tai yhteistyömalli; merkittävä
-     kestävän kehityksen avaus; jäsenkehitysdata) TAI uutisella on Suomi-kytkös.
-   - keskitaso: kiinnostava trendi tai iso kansainvälinen linjaus, ei suoraan
-     sovellettavissa.
-   - matala: hyvä tietää. Kaikki kilpaurheilu-uutiset, jotka poikkeussäännön
-     takia jäivät relevanteiksi, ovat korkeintaan matala.
+5. priority — OLE ANKARA. Korkea on harvinainen: tyypillisessä ajossa
+   0-2 artikkelia sadasta ansaitsee sen. Korkea VAIN jos vähintään yksi täyttyy:
+   a) Siirrettävä toimintamalli, josta on jo TULOKSIA tai mittakaavaa
+      (esim. jäsenmäärän kasvu, todennettu harrastajalisäys) — pelkkä
+      hankkeen, ohjelman tai kampanjan julkistus ei riitä.
+   b) Merkittävä sääntö-, rahoitus- tai rakennemuutos, joka vaikuttaa
+      golfliittojen toimintaan laajasti (R&A/USGA/EGA-tason päätökset).
+   c) Digitaalinen palvelu tai kumppanuusmalli, jonka Golfliitto voisi
+      suoraan kopioida, TAI vahva Suomi-kytkös.
+   EI KOSKAAN korkea: tavallinen ohjelma- tai tapahtumatiedote, olemassa
+   olevan ohjelman jatkuminen tai laajeneminen ilman tuloksia, nimitykset,
+   palkinnot, juhlavuodet, varhaisen vaiheen hankkeet.
+   - keskitaso: kiinnostava ilmiö tai lupaava konsepti ilman tuloksia.
+   - matala: hyvä tietää. Poikkeussäännön kautta relevanteiksi jääneet
+     kilpaurheilu-uutiset ovat korkeintaan matala.
+   Jos epäröit kahden tason välillä, valitse AINA alempi.
 6. themes: 0-3 kpl näistä, vain jos selvästi osuvat: {themes}
 
 Artikkelit:
@@ -109,12 +117,22 @@ Tee jokaiselle artikkelille:
 3. summary_fi: 1-2 lauseen tiivistelmä, joka kertoo MIKSI tämä kiinnostaa
    Golfliittoa (ei lajin fania).
 4. category: yksi näistä: {categories}
-5. priority:
-   - korkea: VAIN jos Golfliitto voisi konkreettisesti soveltaa tätä itse
-     (kampanja-, palvelu-, rahoitus- tai yhteistyömalli, merkittävä
-     vastuullisuusavaus, jäsenkehitysdata tai -päätös).
-   - keskitaso: kiinnostava trendi tai iso linjaus, ei suoraan sovellettavissa.
+5. priority — OLE ANKARA. Korkea on harvinainen: tyypillisessä ajossa
+   0-2 artikkelia sadasta ansaitsee sen. Korkea VAIN jos vähintään yksi täyttyy:
+   a) Siirrettävä toimintamalli, josta on jo TULOKSIA tai mittakaavaa
+      (esim. "uusi seurapalvelumalli toi liitolle 2 000 uutta harrastajaa") —
+      pelkkä hankkeen tai kampanjan julkistus ei riitä.
+   b) Kaikkia lajiliittoja koskeva raha- tai politiikkapäätös: OKM:n
+      avustukset, lakimuutos, Olympiakomitean linjaus, veikkausvarat.
+   c) Merkittävä digitaalinen palvelu tai kaupallinen kumppanuusmalli,
+      jonka Golfliitto voisi suoraan kopioida omaan toimintaansa.
+   EI KOSKAAN korkea: tavallinen kampanja- tai tapahtumatiedote, yksittäisen
+   tapahtuman onnistuminen (esim. "kiertue tavoitti 200 koululaista"),
+   nimitysuutiset, juhlavuodet, palkinnot, lajin arkitoiminta, hanke jolla
+   ei ole vielä tuloksia.
+   - keskitaso: kiinnostava ilmiö tai lupaava konsepti ilman tuloksia.
    - matala: hyvä tietää.
+   Jos epäröit kahden tason välillä, valitse AINA alempi.
 6. themes: 0-3 kpl näistä, vain jos selvästi osuvat: {themes}
 
 Artikkelit:
