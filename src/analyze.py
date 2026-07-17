@@ -76,30 +76,38 @@ Tee jokaiselle artikkelille:
 5. priority — ratkaisevaa on, saako Suomen Golfliitto uutisesta IDEAN,
    MALLIN tai OPIN omaan toimintaansa. Tyypillisesti noin joka kymmenes
    artikkeli ansaitsee korkean.
-   - korkea: sisällöllisesti hyödynnettävä uutinen, esim: konkreettinen
-     vastuullisuus- tai ympäristökäytäntö (vedenkäyttö, energia,
-     biodiversiteetti golfkentillä), asiantuntijan näkemys viestinnän tai
-     digitaalisuuden tulevaisuudesta, koulutus- tai jäsenhankintamalli
-     (esim. kenttälupakoulutuksen työkalut), luova juniori- tai
-     naiskonsepti, kopioitava digipalvelu tai kumppanuus-/rahoitusmalli,
-     merkittävä liittotason foorumi tai linjaus, vahva Suomi-kytkös.
-     Hankkeen ei tarvitse olla valmis — hyvä idea riittää.
-   - keskitaso: relevantti mutta ohuempi: ohjelman jatkuminen tai
-     laajeneminen ilman uutta sisältöä, tavanomainen kampanja- tai
-     osallistujamäärätiedote, liittojen hallinto- ja kokousuutiset,
-     yksittäisen tapahtuman vastuullisuusmaininta ilman konkretiaa.
-   - matala: hyvä tietää: tapahtumainfot, käytännesäännöt, digitaalisen
-     julkaisun uusi numero, kilpailukutsut, ja poikkeussäännön kautta
-     relevanteiksi jääneet kilpaurheilu-uutiset.
+   - korkea, tyyppitapaukset esimerkkeineen:
+     * Kopioitava digityökalu tai -palvelu: "liitto julkaisi AI-työkalun,
+       joka laatii seurojen somejulkaisut", "liitto kilpailuttaa uuden
+       tulospalvelujärjestelmän", "Sweetspot Pay -maksuratkaisu seuroille"
+     * Jäsen-/harrastajakehitysdata, josta syyt näkyvät: "jäsenmäärä +8 %,
+       kasvu alle 30-vuotiaista", "naisten osuus uusista pelaajista 41 %"
+     * Luova kumppanuus- tai rahoitusmalli: "junalipulla alennusta green
+       feestä", merkittävä sponsorisopimus
+     * Rohkea viestintäkanava- tai konseptiuudistus: "jäsenviestintä
+       siirtyy kokonaan WhatsAppiin"
+     * Vastuullisuus- ja ympäristöinnovaatio: "aurinkovoimalla toimiva
+       golfkenttä", "Evian: vastuullista vedenkäyttöä", "Scottish Open
+       näyttää suuntaa energiamurroksessa", "Punainen lista ja golf"
+     * UUSI koulutus- tai palvelukonsepti — uutuusarvo ratkaisee:
+       tuore työkalu/konsepti (esim. "DGV:n sääntökysely kenttälupaan",
+       "golfaiheinen lastensatu etsii kumppaneita") = korkea, mutta
+       tavanomainen verkkokurssi tai vanhan laajennus = keskitaso/matala
+     * Laajasti pelaamiseen vaikuttava sääntöuudistus: "etäisyysmittarit
+       sallitaan kaikissa amatöörikilpailuissa"
+     * Asiantuntijanäkemys viestinnän/digin tulevaisuudesta: "sosiaalinen
+       media mullistaa golfia", tai merkittävä liittotason foorumi
+       ("EGA:n kestävän golfin foorumi"), tai vahva Suomi-kytkös
+   - keskitaso: nimitykset avainrooleihin, pienet sääntötarkennukset,
+     tapahtuma- ja osallistujaennätykset, YKSITTÄISEN SEURAN hankkeet
+     vaikka teema osuisi (esim. seuran EU-rahoitteinen ympäristöhanke),
+     ohjelman jatkuminen ilman uutta sisältöä ("Youth Trophy jatkaa
+     kasvuaan"), hallinto- ja kokousuutiset.
+   - matala: rutiinitiedotteet, vierailut, lipunmyynti, käytännesäännöt,
+     digitaalisen julkaisun uusi numero, tavalliset turnaukset, ja
+     poikkeussäännön kautta relevanteiksi jääneet kilpaurheilu-uutiset.
    EI KOSKAAN korkea: nimitykset, palkinnot, juhlavuodet, pelkkä
    tapahtuman järjestäminen tai onnistuminen ilman uutta konseptia.
-   Esimerkkejä korkeasta: "Evian Golf Resort: vastuullista vedenkäyttöä",
-   "Sosiaalinen media mullistaa golfia", "Punainen lista ja golf",
-   "golfaiheinen lastensatu etsii kumppaneita", "DGV:n sääntökysely
-   kenttälupaan", "EGA:n kestävän golfin foorumi", "Scottish Open näyttää
-   suuntaa energiamurroksessa", "Sweetspot Pay -maksuratkaisu seuroille".
-   Esimerkkejä keskitasosta: "Youth Trophy jatkaa kasvuaan", "katsojien
-   käytännesäännöt julkaistu", "RFEGolf Digital numero 150".
 6. themes: 0-3 kpl näistä, vain jos selvästi osuvat: {themes}
 
 Artikkelit:
@@ -121,27 +129,32 @@ menestys tai siirrot, otteluennakot.
 Tee jokaiselle artikkelille:
 1. relevant:
    - false: tulokset, joukkuevalinnat, urheilija- ja otteluuutiset — vaikka
-     kyse olisi junioreista, naisista tai arvokisoista.
+     kyse olisi junioreista, naisista tai arvokisoista. Myös suomalaisten
+     maajoukkueiden mitalit ja arvokisamenestys: false.
    - true: kaikki, mikä osuu yllä lueteltuihin kiinnostuksen kohteisiin.
 2. title_fi: otsikko sellaisenaan (uutiset ovat jo suomeksi), siivoa vain
    mahdollinen lähdejäänne lopusta.
 3. summary_fi: 1-2 lauseen tiivistelmä, joka kertoo MIKSI tämä kiinnostaa
    Golfliittoa (ei lajin fania).
 4. category: yksi näistä: {categories}
-5. priority — OLE ANKARA. Korkea on harvinainen: tyypillisessä ajossa
-   0-2 artikkelia sadasta ansaitsee sen. Korkea VAIN jos vähintään yksi täyttyy:
-   a) Siirrettävä toimintamalli, josta on jo TULOKSIA tai mittakaavaa
-      (esim. "uusi seurapalvelumalli toi liitolle 2 000 uutta harrastajaa") —
-      pelkkä hankkeen tai kampanjan julkistus ei riitä.
-   b) Kaikkia lajiliittoja koskeva raha- tai politiikkapäätös: OKM:n
+5. priority — OLE ANKARA. Korkea VAIN näissä tyyppitapauksissa:
+   a) Kopioitava digipalvelu tai avoin data: "Palloliitto julkaisi avoimen
+      datan rajapinnan harrastajamääristään"
+   b) Merkittävä kaupallinen kumppanuus, erityisesti euromäärineen:
+      "Jääkiekkoliitto ja Kesko kolmivuotiseen pääyhteistyöhön, arvo 2 M€"
+   c) Jäsen-/harrastajahankintamalli, josta on jo TULOKSIA: "kokeile
+      kuukausi ilmaiseksi -malli toi 4 000 uutta lisenssipelaajaa" —
+      pelkkä kampanjan julkistus ei riitä.
+   d) Kaikkia lajiliittoja koskeva raha- tai politiikkapäätös: OKM:n
       avustukset, lakimuutos, Olympiakomitean linjaus, veikkausvarat.
-   c) Merkittävä digitaalinen palvelu tai kaupallinen kumppanuusmalli,
-      jonka Golfliitto voisi suoraan kopioida omaan toimintaansa.
    EI KOSKAAN korkea: tavallinen kampanja- tai tapahtumatiedote, yksittäisen
    tapahtuman onnistuminen (esim. "kiertue tavoitti 200 koululaista"),
    nimitysuutiset, juhlavuodet, palkinnot, lajin arkitoiminta, hanke jolla
    ei ole vielä tuloksia.
-   - keskitaso: kiinnostava ilmiö tai lupaava konsepti ilman tuloksia.
+   - keskitaso: sektoritason huolidata ilman ratkaisua (esim.
+     "vapaaehtoisten määrä laskenut viidenneksen"), nimitykset
+     avainrooleihin, tapahtumaennätykset, kampanjan julkistus ilman
+     tuloksia, kiinnostava ilmiö.
    - matala: hyvä tietää.
    Jos epäröit kahden tason välillä, valitse AINA alempi.
 6. themes: 0-3 kpl näistä, vain jos selvästi osuvat: {themes}
