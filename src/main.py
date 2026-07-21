@@ -39,8 +39,9 @@ def main() -> int:
     parser.add_argument("--skip-analysis", action="store_true")
     parser.add_argument("--report-only", action="store_true")
     parser.add_argument("--no-email", action="store_true")
-    parser.add_argument("--reanalyze", action="store_true",
-                        help="analysoi kaikki artikkelit uudelleen (esim. promptin muututtua)")
+    parser.add_argument("--reanalyze", nargs="?", const="all", metavar="TAB",
+                        help="analysoi artikkelit uudelleen (promptin muututtua). "
+                             "Valinnainen välilehti: golfliitot | urheilu_liitot")
     parser.add_argument("--purge", metavar="SOURCE_ID", action="append",
                         help="poista lähteen kaikki artikkelit ennen keruuta (voi toistaa)")
     parser.add_argument("--import-json", metavar="PATH")
@@ -62,8 +63,10 @@ def main() -> int:
         log.info("Poistettu %d artikkelia lähteestä %s", n, source_id)
 
     if args.reanalyze:
-        n = store.reset_analysis(conn)
-        log.info("Uudelleenanalyysi: %d artikkelia palautettu jonoon", n)
+        tab = None if args.reanalyze == "all" else args.reanalyze
+        n = store.reset_analysis(conn, tab)
+        log.info("Uudelleenanalyysi%s: %d artikkelia palautettu jonoon",
+                 f" ({tab})" if tab else "", n)
 
     healths: list[dict] = []
     new_count = 0

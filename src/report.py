@@ -235,10 +235,10 @@ function render() {{
     && (!country || a.country === country)
     && (!onlyNew || a.is_new)
     && (!q || ((a.title_fi||"")+(a.title||"")+(a.summary_fi||"")).toLowerCase().includes(q)));
-  // Uusimmat edellisen ajon jälkeen + tärkeimmät Golfliitolle nousevat kärkeen,
-  // vanhat mutta jo aiemmin nähdyt artikkelit pysyvät listassa alempana.
-  items.sort((a,b) => (b.is_new - a.is_new)
-    || (PRIO_ORDER[a.priority]??3)-(PRIO_ORDER[b.priority]??3)
+  // Tärkein signaali ensin: prioriteetti (punainen → keltainen → vihreä),
+  // saman prioriteetin sisällä uudet edellä ja tuoreimmat päälle.
+  items.sort((a,b) => (PRIO_ORDER[a.priority]??3)-(PRIO_ORDER[b.priority]??3)
+    || (b.is_new - a.is_new)
     || (b.published||"").localeCompare(a.published||""));
   const newCount = items.filter(a => a.is_new).length;
   $("count").textContent = items.length + " artikkelia"

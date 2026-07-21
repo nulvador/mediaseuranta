@@ -175,10 +175,18 @@ def purge_source(conn: sqlite3.Connection, source_id: str) -> int:
     return cur.rowcount
 
 
-def reset_analysis(conn: sqlite3.Connection) -> int:
-    """Palauta kaikki analysoidut/hylätyt 'new'-tilaan uudelleenanalyysiä varten."""
-    cur = conn.execute(
-        "UPDATE articles SET status='new' WHERE status IN ('analyzed','irrelevant')")
+def reset_analysis(conn: sqlite3.Connection, tab: str = None) -> int:
+    """Palauta analysoidut/hylätyt 'new'-tilaan uudelleenanalyysiä varten.
+
+    tab: jos annettu, vain kyseinen välilehti (säästää Gemini-kutsuja
+    kehitysvaiheen kalibroinnissa)."""
+    if tab:
+        cur = conn.execute(
+            "UPDATE articles SET status='new' "
+            "WHERE status IN ('analyzed','irrelevant') AND tab=?", (tab,))
+    else:
+        cur = conn.execute(
+            "UPDATE articles SET status='new' WHERE status IN ('analyzed','irrelevant')")
     conn.commit()
     return cur.rowcount
 

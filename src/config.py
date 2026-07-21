@@ -40,8 +40,11 @@ FETCH_TIMEOUT = 15          # sekuntia / HTTP-pyyntö
 MAX_WORKERS = 8             # rinnakkaisten hakujen määrä
 
 # --- Analyysi (Gemini free tier: vain ~20 kutsua/vrk!) ---
-# Isohko erä minimoi kutsujen määrän; structured output pitää vastaukset ehjinä.
-BATCH_SIZE = 25
+# Iso erä minimoi kutsujen määrän: kutsut = artikkelit / BATCH_SIZE.
+# Eräkoko ei vaikuta analyysin laatuun (sama prompti/skeema per artikkeli),
+# vain siihen montako artikkelia kulkee yhdessä pyynnössä. gemini-2.5-flashin
+# output-raja (~64k tokenia) riittää helposti 50 artikkelille.
+BATCH_SIZE = 50
 BATCH_PAUSE_S = 5
 BATCH_RETRIES = 2           # yritystä per erä; epäonnistunut erä jää 'new'-tilaan -> uusi yritys seuraavassa ajossa
 
