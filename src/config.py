@@ -50,6 +50,7 @@ BATCH_RETRIES = 2           # yritystä per erä; epäonnistunut erä jää 'new
 
 # --- Raportti ---
 REPORT_DAYS = int(os.environ.get("REPORT_DAYS", "60"))      # kuinka vanhoja artikkeleita raportissa näytetään
+RETENTION_DAYS = int(os.environ.get("RETENTION_DAYS", "70"))  # tätä vanhemmat poistetaan kannasta (pitää uudelleenanalyysin kevyenä)
 
 # --- Sähköposti (valinnainen; jos SMTP_HOST puuttuu, ohitetaan) ---
 SMTP_HOST = os.environ.get("SMTP_HOST", "")

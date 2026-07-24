@@ -91,7 +91,13 @@ def insert_new(conn: sqlite3.Connection, articles: list[dict]) -> int:
 
 
 def pending_articles(conn: sqlite3.Connection) -> list[dict]:
-    rows = conn.execute("SELECT * FROM articles WHERE status='new' ORDER BY tab, id").fetchall()
+    # 'new' = ei koskaan analysoitu, 'stale' = analysoitu mutta prompti muuttunut.
+    # Uudet ensin (tuoreimmat), sitten uudelleenarvioitavat — näin kiintiön
+    # loppuessa tärkein (uusi sisältö) ehtii varmimmin.
+    rows = conn.execute(
+        "SELECT * FROM articles WHERE status IN ('new','stale') "
+        "ORDER BY CASE status WHEN 'new' THEN 0 ELSE 1 END, fetched_at DESC, id"
+    ).fetchall()
     return [dict(r) for r in rows]
 
 
@@ -111,9 +117,11 @@ def save_analysis(conn: sqlite3.Connection, results: list[dict]) -> None:
 
 def report_articles(conn: sqlite3.Connection, days: int) -> list[dict]:
     cutoff = (datetime.date.today() - datetime.timedelta(days=days)).isoformat()
+    # 'stale' näytetään edelleen vanhalla arviolla, kunnes uusi ehtii —
+    # näin uudelleenanalyysi ei koskaan tyhjennä raporttia.
     rows = conn.execute(
         """SELECT * FROM articles
-           WHERE status='analyzed'
+           WHERE status IN ('analyzed','stale')
              AND (published >= ? OR published IS NULL OR published = '')
            ORDER BY published DESC, id DESC""",
         (cutoff,),
@@ -176,17 +184,39 @@ def purge_source(conn: sqlite3.Connection, source_id: str) -> int:
 
 
 def reset_analysis(conn: sqlite3.Connection, tab: str = None) -> int:
-    """Palauta analysoidut/hylätyt 'new'-tilaan uudelleenanalyysiä varten.
+    """Merkitse artikkelit uudelleenanalysoitaviksi promptin muututtua.
 
-    tab: jos annettu, vain kyseinen välilehti (säästää Gemini-kutsuja
-    kehitysvaiheen kalibroinnissa)."""
-    if tab:
-        cur = conn.execute(
-            "UPDATE articles SET status='new' "
-            "WHERE status IN ('analyzed','irrelevant') AND tab=?", (tab,))
-    else:
-        cur = conn.execute(
-            "UPDATE articles SET status='new' WHERE status IN ('analyzed','irrelevant')")
+    analyzed -> stale: pysyy raportissa vanhalla arviolla, kunnes uusi ehtii
+                       (raportti ei tyhjene).
+    irrelevant -> new: arvioidaan uudelleen (ei näy ennen sitä).
+    tab: jos annettu, vain kyseinen välilehti (säästää Gemini-kutsuja)."""
+    where = " AND tab=?" if tab else ""
+    params = (tab,) if tab else ()
+    conn.execute(f"UPDATE articles SET status='stale' WHERE status='analyzed'{where}", params)
+    cur = conn.execute(f"UPDATE articles SET status='new' WHERE status='irrelevant'{where}", params)
+    conn.commit()
+    # Palauta uudelleenarvioitavien kokonaismäärä
+    q = f"SELECT COUNT(*) FROM articles WHERE status IN ('new','stale'){where}"
+    return conn.execute(q, params).fetchone()[0]
+
+
+def restore_stale(conn: sqlite3.Connection) -> int:
+    """Palauta 'new'-tilaan jääneet, jo kertaalleen analysoidut artikkelit
+    näkyviin (stale). Korjaa tilanteen, jossa reanalyze jätti raportin vajaaksi."""
+    cur = conn.execute(
+        "UPDATE articles SET status='stale' "
+        "WHERE status='new' AND COALESCE(title_fi,'') != ''")
+    conn.commit()
+    return cur.rowcount
+
+
+def purge_old(conn: sqlite3.Connection, days: int) -> int:
+    """Poista raportti-ikkunaa vanhemmat artikkelit — pitää kannan pienenä
+    eikä uudelleenanalyysi paisu satoihin kutsuihin."""
+    cutoff = (datetime.date.today() - datetime.timedelta(days=days)).isoformat()
+    cur = conn.execute(
+        "DELETE FROM articles WHERE fetched_at < ? AND status IN ('analyzed','irrelevant','stale')",
+        (cutoff,))
     conn.commit()
     return cur.rowcount
 

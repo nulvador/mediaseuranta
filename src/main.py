@@ -44,6 +44,9 @@ def main() -> int:
                              "Valinnainen välilehti: golfliitot | urheilu_liitot")
     parser.add_argument("--purge", metavar="SOURCE_ID", action="append",
                         help="poista lähteen kaikki artikkelit ennen keruuta (voi toistaa)")
+    parser.add_argument("--restore", action="store_true",
+                        help="palauta 'new'-tilaan jääneet jo analysoidut artikkelit "
+                             "näkyviin (korjaa keskeytyneen uudelleenanalyysin)")
     parser.add_argument("--import-json", metavar="PATH")
     args = parser.parse_args()
 
@@ -61,6 +64,16 @@ def main() -> int:
     for source_id in (args.purge or []):
         n = store.purge_source(conn, source_id)
         log.info("Poistettu %d artikkelia lähteestä %s", n, source_id)
+
+    if args.restore:
+        n = store.restore_stale(conn)
+        log.info("Palautettu %d artikkelia näkyviin (stale)", n)
+
+    # Retention: pidä kanta pienenä, ettei uudelleenanalyysi paisu satoihin kutsuihin
+    removed_old = store.purge_old(conn, config.RETENTION_DAYS)
+    if removed_old:
+        log.info("Retention: poistettu %d yli %d pv vanhaa artikkelia",
+                 removed_old, config.RETENTION_DAYS)
 
     if args.reanalyze:
         tab = None if args.reanalyze == "all" else args.reanalyze
