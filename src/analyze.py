@@ -61,19 +61,43 @@ valitse alempi taso tai jätä artikkeli pois (relevant=false).
 
 Tee jokaiselle artikkelille:
 1. relevant — false kaikelle arkiselle, myös:
-   - kilpailu- ja ottelutulokset, sarjatilanteet, lähtöajat, karsinnat,
+   - TULOKSET JA SIJOITUKSET AINA, KUN MUKANA EI OLE SUOMALAISIA: tulokset,
+     sijoitukset, voitot, mitalit, sarjatilanteet, lähtöajat, karsinnat,
      osallistuja- ja tulosluettelot, joukkue- ja maajoukkuevalinnat,
-     pelaajauutiset — vaikka kyse olisi junioreista, naisista tai arvokisoista
-   - tapahtumatiedotteet ja -ennakot, kisaseuranta ("seuraa MM-kilpailua"),
-     tapahtuman jälkiraportti tai onnistuminen ("golfpäivä onnistui hyvin")
+     yksittäisten pelaajien menestys. Tämä pätee junioreihin, naisiin,
+     amatööreihin, arvokilpailuihin JA MAJOREIHIN. Ulkomaisen pelaajan
+     menestys ei kiinnosta Suomen Golfliittoa, olkoon kilpailu miten arvokas.
+     Nämä ovat POIS:
+       "Sveitsin mestaruuskilpailut kaikille: Anna Olesenille ja Filippo
+        Serralle kansalliset tittelit" — toisen maan mestaruuskilpailu
+       "Clarissa Rattaggi alle 16-vuotiaiden EM-kilpailujen viidenneksi"
+        — EM-sijoitus ilman suomalaisia
+       "Puolalaisille historiallinen tulos European Young Mastersissa"
+       "Ranskan nuorten mestaruuskilpailut: tulevaisuus on turvattu"
+       "Daniela Campillon upea nousu naisten henkilökohtaisissa"
+   - muiden maiden kansalliset mestaruuskilpailut ja niiden mitalistit
+   - KISASEURANTA JA LIVE-TULOKSET AINA, myös oman maan kilpailuista. POIS esim.
+     "Seuraa Sveitsin kansallisia mestaruuskilpailuja live-tuloksista",
+     "Live-tulokset: seuraa sveitsiläispelaajien tuloksia"
+   - tapahtumatiedotteet ja -ennakot, tapahtuman jälkiraportti tai onnistuminen
    - tavallisten kiertueosakilpailujen uutisointi ja kisakalenterit
-   - yksittäiset turnaukset ja muistokilpailut, myös sekamuotoiset
-     (esim. golf-bridge-mestaruus) ja klubien omat kilpailut
-   POIKKEUS (relevant=true, ks. kohta 5): majorit ja arvokilpailut sekä
-   kaikki kilpailut, joissa on suomalaisia mukana.
-   - ilmoittautumiset, vapaaehtoisrekry, kilpailujen järjestäjähaut
+   - yksittäiset turnaukset ja muistokilpailut, myös sekamuotoiset ja klubien
+     omat kilpailut. POIS esim. "Puolan golf-bridge-mestaruuskilpailut
+     järjestetään Binowissa" — sana mestaruus ei tee kilpailusta arvokilpailua.
+   - tavanomaiset valmentaja-, tuomari- ja ohjaajakoulutukset sekä kurssit.
+     POIS esim. "Italian Golfliiton uusi B-luokan apuvalmentajakurssi päättyi"
+   - ilmoittautumiset, vapaaehtoisrekry, talkoo- ja järjestäjähaut. POIS esim.
+     "Vapaaehtoisohjelma greenkeepereille Espanjan avoimiin 2026"
    - golfkenttä-listaukset ja -esittelyt, golfmatkailujutut
    - digitaalisen julkaisun/lehden uusi numero, navigaatio, mainokset
+   POIKKEUS (relevant=true): kilpailuun liittyvä uutinen kelpaa vain jos
+   (a) mukana on suomalaisia, (b) kilpailu järjestetään Suomessa, tai
+   (c) uutinen kertoo liittotasoisesta päätöksestä: sääntö- tai
+       formaattimuutoksesta, isäntäpaikkapäätöksestä, kilpailun taloudesta tai
+       uudesta kumppanuudesta (ks. kohta 5).
+   Kohta (c) EI kata kilpailun käytännön pyörittämistä: live-tulospalvelu,
+   kisaseuranta, vapaaehtoisrekry, ilmoittautumiset, aikataulut ja
+   osallistujalistat ovat POIS, vaikka ne liittyisivät arvokilpailuun.
    Jos sama uutinen esiintyy monta kertaa, vain yksi relevant=true, muut false.
 2. title_fi: Käännä otsikko sujuvaksi, toimitukselliseksi suomeksi. ÄLÄ käännä
    sanasta sanaan — kirjoita kuten suomalainen urheilutoimittaja otsikoisi saman
@@ -101,9 +125,14 @@ Tee jokaiselle artikkelille:
      * Uusi pelimuoto tai konsepti (simulaattoriliiga, matalan kynnyksen malli)
      * Merkittävä liittotason foorumi/linjaus tai asiantuntijanäkemys
        viestinnän/digin tulevaisuudesta
-     * MAJORIT JA ARVOKILPAILUT: The Open, Masters, US Open, PGA Championship,
-       naisten majorit (mm. Evian, Solheim Cup), Ryder Cup, olympialaiset,
-       EM- ja MM-kilpailut — myös kisan pelaaminen, ennakko tai tulos
+     * MAJORIT JA ARVOKILPAILUT VAIN TAPAHTUMANA, EI TULOKSINA: The Open,
+       Masters, US Open, PGA Championship, naisten majorit (mm. Evian),
+       Solheim Cup, Ryder Cup, olympialaiset sekä EM- ja MM-kilpailut
+       kiinnostavat silloin, kun uutinen kertoo kilpailun järjestämisestä,
+       säännöistä, formaatista, taloudesta tai kumppanuuksista. Pelaajien
+       sijoitukset ja voittajat EIVÄT kiinnosta (relevant=false), ellei
+       mukana ole suomalaisia. "The Open siirtyy Portrushiin 2028" = korkea,
+       "Ryan Fox voitti Claret Jugin" = relevant=false.
      * KAIKKI KILPAILUT, JOISSA ON SUOMALAISIA MUKANA: suomalaispelaajan
        osallistuminen, menestys tai karsiutuminen mihin tahansa kilpailuun,
        sekä Suomessa järjestettävät kilpailut
