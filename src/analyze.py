@@ -110,7 +110,7 @@ Tee jokaiselle artikkelille:
    - keskitaso (harvinainen): kiinnostava ilmiö tai trendi ilman suoraa
      hyötyä, jota ei voi suoraan kopioida (esim. "golfarit siirtyvät
      kärryihin", urheiluoikeudellinen tapaus).
-   - matala: relevantiksi jäänyt arkijuttu, Suomi-kytköksiset kilpauutiset,
+   - matala: relevantiksi jäänyt arkijuttu, nimitykset, palkinnot,
      rutiininomainen mutta lievästi kiinnostava sisältö.
    EI KOSKAAN korkea: nimitykset, palkinnot, juhlavuodet, tapahtuman
    järjestäminen/onnistuminen, ohjelman jatkuminen ilman uutta sisältöä.

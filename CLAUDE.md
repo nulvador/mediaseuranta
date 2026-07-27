@@ -49,7 +49,10 @@ ja kasvuraportit · golfin terveystutkimukset · kestävän kehityksen innovaati
 digipalvelut ja tekoälyratkaisut · merkittävät kumppanuudet ja rahoitusmallit ·
 jäsenkehitysdata syineen · liiton talouskriisi tai skandaali · safeguarding ·
 olympiastatus · suurtapahtuman isäntäpaikka **vain Pohjoismaissa** · uudet
-pelimuodot ja konseptit.
+pelimuodot ja konseptit · **majorit ja arvokilpailut** (The Open, Masters,
+US Open, PGA, naisten majorit, Solheim/Ryder Cup, olympialaiset, EM/MM) ·
+**kaikki kilpailut joissa suomalaisia mukana** (osallistuminen, menestys,
+karsiutuminen) ja Suomessa järjestettävät kilpailut.
 
 Lajiliitot: lakimuutokset ja seuratuki · OKM/veikkausvarat/Olympiakomitean
 linjaukset · edunvalvontavoitot (esim. ajokortin ikäpoikkeus) · yhteiset
@@ -70,12 +73,17 @@ Suomi-kytköksiset kilpauutiset.
 ### Pois kokonaan (relevant=false)
 
 Kilpailutulokset, sarjatilanteet, lähtöajat, karsinnat, osallistujalistat,
-joukkuevalinnat (myös Suomen mitalit) · tapahtumatiedotteet, -ennakot ja
-kisaseuranta · kilpailun pelaaminen tai esittely ("154. Open pelataan
-Royal Birkdalessa") · yksittäiset turnaukset ja muistokilpailut · seurojen
+joukkuevalinnat · tapahtumatiedotteet, -ennakot ja kisaseuranta ·
+tavallisten kiertueosakilpailujen uutisointi · yksittäiset turnaukset ja
+muistokilpailut (myös golf-bridge yms.) · seurojen
 pelaajarekry, leirit, harjoitusvuorot · tavanomaiset valmentaja- ja
 tuomarikoulutukset · ilmoittautumiset ja järjestäjähaut · kenttälistaukset ja
 golfmatkailu · lehden uusi numero · navigaatio ja mainokset.
+
+**Poikkeus kilpailuihin:** majorit, arvokilpailut ja kaikki kilpailut joissa
+on suomalaisia mukana EIVÄT karsiudu — ne ovat punaisia (ks. yllä). Lajiliitto-
+välilehdellä sen sijaan kaikki kilpailu-uutisointi karsiutuu, myös Suomen
+mitalit — Golfliittoa kiinnostaa muiden lajien toimintamallit, ei menestys.
 
 **Kalibrointitapa:** kun käyttäjä sanoo "tämä oli väärässä laatikossa", lisää
 kyseinen otsikko esimerkkinä oikean tason listaan promptissa. Poista samalla
