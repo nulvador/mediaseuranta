@@ -90,13 +90,36 @@ def insert_new(conn: sqlite3.Connection, articles: list[dict]) -> int:
     return inserted
 
 
+# Artikkelin "tehollinen päivä": julkaisupäivä, tai jos sitä ei tiedetä,
+# havaitsemispäivä. Tätä vasten mitataan sekä näkyvyys että vanheneminen.
+_EFF_DATE = "COALESCE(NULLIF(published,''), substr(fetched_at,1,10))"
+
+
+def _cutoff(days: int) -> str:
+    return (datetime.date.today() - datetime.timedelta(days=days)).isoformat()
+
+
+def expire_old_pending(conn: sqlite3.Connection, days: int) -> int:
+    """Merkitse raportti-ikkunaa vanhemmat analysoimattomat 'expired'-tilaan.
+
+    Näitä ei näytetä eikä analysoida — säästää Gemini-kutsut tuoreille
+    uutisille."""
+    cur = conn.execute(
+        f"UPDATE articles SET status='expired' "
+        f"WHERE status IN ('new','stale') AND {_EFF_DATE} < ?", (_cutoff(days),))
+    conn.commit()
+    return cur.rowcount
+
+
 def pending_articles(conn: sqlite3.Connection) -> list[dict]:
     # 'new' = ei koskaan analysoitu, 'stale' = analysoitu mutta prompti muuttunut.
-    # Uudet ensin (tuoreimmat), sitten uudelleenarvioitavat — näin kiintiön
-    # loppuessa tärkein (uusi sisältö) ehtii varmimmin.
+    # Vain raportti-ikkunan sisällä olevat: vanhempia ei kannata analysoida.
+    # Uudet ensin (tuoreimmat), sitten uudelleenarvioitavat.
     rows = conn.execute(
-        "SELECT * FROM articles WHERE status IN ('new','stale') "
-        "ORDER BY CASE status WHEN 'new' THEN 0 ELSE 1 END, fetched_at DESC, id"
+        f"SELECT * FROM articles WHERE status IN ('new','stale') "
+        f"AND {_EFF_DATE} >= ? "
+        f"ORDER BY CASE status WHEN 'new' THEN 0 ELSE 1 END, {_EFF_DATE} DESC, id",
+        (_cutoff(config.REPORT_DAYS),),
     ).fetchall()
     return [dict(r) for r in rows]
 
@@ -116,15 +139,14 @@ def save_analysis(conn: sqlite3.Connection, results: list[dict]) -> None:
 
 
 def report_articles(conn: sqlite3.Connection, days: int) -> list[dict]:
-    cutoff = (datetime.date.today() - datetime.timedelta(days=days)).isoformat()
     # 'stale' näytetään edelleen vanhalla arviolla, kunnes uusi ehtii —
     # näin uudelleenanalyysi ei koskaan tyhjennä raporttia.
     rows = conn.execute(
-        """SELECT * FROM articles
+        f"""SELECT * FROM articles
            WHERE status IN ('analyzed','stale')
-             AND (published >= ? OR published IS NULL OR published = '')
-           ORDER BY published DESC, id DESC""",
-        (cutoff,),
+             AND {_EFF_DATE} >= ?
+           ORDER BY {_EFF_DATE} DESC, id DESC""",
+        (_cutoff(days),),
     ).fetchall()
     out = []
     for r in rows:
@@ -211,12 +233,10 @@ def restore_stale(conn: sqlite3.Connection) -> int:
 
 
 def purge_old(conn: sqlite3.Connection, days: int) -> int:
-    """Poista raportti-ikkunaa vanhemmat artikkelit — pitää kannan pienenä
-    eikä uudelleenanalyysi paisu satoihin kutsuihin."""
-    cutoff = (datetime.date.today() - datetime.timedelta(days=days)).isoformat()
+    """Poista hyvin vanhat artikkelit kannasta kokonaan. Dedup-historia
+    säilyy RETENTION_DAYS-ikkunan ajan, jottei vanha uutinen palaa uutena."""
     cur = conn.execute(
-        "DELETE FROM articles WHERE fetched_at < ? AND status IN ('analyzed','irrelevant','stale')",
-        (cutoff,))
+        "DELETE FROM articles WHERE fetched_at < ?", (_cutoff(days),))
     conn.commit()
     return cur.rowcount
 

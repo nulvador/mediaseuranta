@@ -49,8 +49,13 @@ BATCH_PAUSE_S = 5
 BATCH_RETRIES = 2           # yritystä per erä; epäonnistunut erä jää 'new'-tilaan -> uusi yritys seuraavassa ajossa
 
 # --- Raportti ---
-REPORT_DAYS = int(os.environ.get("REPORT_DAYS", "60"))      # kuinka vanhoja artikkeleita raportissa näytetään
-RETENTION_DAYS = int(os.environ.get("RETENTION_DAYS", "70"))  # tätä vanhemmat poistetaan kannasta (pitää uudelleenanalyysin kevyenä)
+# Artikkeli näkyy raportissa 5 päivää julkaisustaan (tai havaitsemisestaan,
+# jos julkaisupäivää ei tiedetä). Tätä vanhemmat poistuvat näkyvistä eikä
+# niitä analysoida lainkaan — säästää Gemini-kutsuja.
+REPORT_DAYS = int(os.environ.get("REPORT_DAYS", "5"))
+# Kannassa hasheja pidetään pidempään, jotta dedup toimii eivätkä vanhat
+# uutiset palaa raporttiin uusina.
+RETENTION_DAYS = int(os.environ.get("RETENTION_DAYS", "90"))
 
 # --- Sähköposti (valinnainen; jos SMTP_HOST puuttuu, ohitetaan) ---
 SMTP_HOST = os.environ.get("SMTP_HOST", "")

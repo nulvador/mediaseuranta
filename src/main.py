@@ -69,7 +69,7 @@ def main() -> int:
         n = store.restore_stale(conn)
         log.info("Palautettu %d artikkelia näkyviin (stale)", n)
 
-    # Retention: pidä kanta pienenä, ettei uudelleenanalyysi paisu satoihin kutsuihin
+    # Retention: poista hyvin vanhat kokonaan (dedup-historia säilyy siihen asti)
     removed_old = store.purge_old(conn, config.RETENTION_DAYS)
     if removed_old:
         log.info("Retention: poistettu %d yli %d pv vanhaa artikkelia",
@@ -107,6 +107,12 @@ def main() -> int:
     # ── Vaihe 2: analyysi (jatkaa myös edellisen ajon kesken jääneitä) ─
     analyzed = failed = 0
     if not args.report_only and not args.skip_analysis:
+        # Vanhentuneita ei analysoida — kutsut säästyvät tuoreille uutisille
+        expired = store.expire_old_pending(conn, config.REPORT_DAYS)
+        if expired:
+            log.info("Vanhentunut jonosta: %d artikkelia (yli %d pv vanhoja)",
+                     expired, config.REPORT_DAYS)
+
         pending = store.pending_articles(conn)
         if pending:
             log.info("Analysoidaan %d artikkelia (%d/erä, malli: %s)",

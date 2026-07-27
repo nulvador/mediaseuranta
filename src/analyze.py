@@ -66,11 +66,14 @@ Tee jokaiselle artikkelille:
      pelaajauutiset — vaikka kyse olisi junioreista, naisista tai arvokisoista
    - tapahtumatiedotteet ja -ennakot, kisaseuranta ("seuraa MM-kilpailua"),
      tapahtuman jälkiraportti tai onnistuminen ("golfpäivä onnistui hyvin")
+   - tavallisten kiertueosakilpailujen uutisointi ja kisakalenterit
+   - yksittäiset turnaukset ja muistokilpailut, myös sekamuotoiset
+     (esim. golf-bridge-mestaruus) ja klubien omat kilpailut
+   POIKKEUS (relevant=true, ks. kohta 5): majorit ja arvokilpailut sekä
+   kaikki kilpailut, joissa on suomalaisia mukana.
    - ilmoittautumiset, vapaaehtoisrekry, kilpailujen järjestäjähaut
    - golfkenttä-listaukset ja -esittelyt, golfmatkailujutut
    - digitaalisen julkaisun/lehden uusi numero, navigaatio, mainokset
-   POIKKEUS: vahva Suomi-kytkös (suomalainen pelaaja keskeisessä roolissa tai
-   tapahtuma Suomessa) → relevant=true (yleensä matala).
    Jos sama uutinen esiintyy monta kertaa, vain yksi relevant=true, muut false.
 2. title_fi: Käännä otsikko sujuvaksi, toimitukselliseksi suomeksi. ÄLÄ käännä
    sanasta sanaan — kirjoita kuten suomalainen urheilutoimittaja otsikoisi saman
@@ -91,10 +94,19 @@ Tee jokaiselle artikkelille:
      * Jäsen-/harrastajakehitysdata syineen ("naisten osuus uusista 41 %")
      * Liiton talouskriisi, skandaali tai johdon väärinkäytös
      * Safeguarding / häirinnän vastaiset ohjeet ja toimintamallit
-     * Golfin olympiastatus tai kv-suurtapahtuman isännöinti (Ryder Cup ym.)
+     * Golfin olympiastatus; suurtapahtuman isäntäpaikkapäätös VAIN jos
+       Pohjoismaissa tai Suomessa (esim. Ryder Cup Pohjolaan) — muualla
+       maailmassa isäntäpaikkapäätös on keskitaso (esim. "Baltusrol isännöi
+       vuoden 2046 U.S. Openia")
      * Uusi pelimuoto tai konsepti (simulaattoriliiga, matalan kynnyksen malli)
      * Merkittävä liittotason foorumi/linjaus tai asiantuntijanäkemys
        viestinnän/digin tulevaisuudesta
+     * MAJORIT JA ARVOKILPAILUT: The Open, Masters, US Open, PGA Championship,
+       naisten majorit (mm. Evian, Solheim Cup), Ryder Cup, olympialaiset,
+       EM- ja MM-kilpailut — myös kisan pelaaminen, ennakko tai tulos
+     * KAIKKI KILPAILUT, JOISSA ON SUOMALAISIA MUKANA: suomalaispelaajan
+       osallistuminen, menestys tai karsiutuminen mihin tahansa kilpailuun,
+       sekä Suomessa järjestettävät kilpailut
    - keskitaso (harvinainen): kiinnostava ilmiö tai trendi ilman suoraa
      hyötyä, jota ei voi suoraan kopioida (esim. "golfarit siirtyvät
      kärryihin", urheiluoikeudellinen tapaus).
