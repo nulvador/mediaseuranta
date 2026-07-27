@@ -114,7 +114,18 @@ deploy/            launchd-ajastus (ti + pe klo 10:15)
 - Vapaa `google_news_query` vain kun domain ei ole GN-indeksissä. Varo:
   vapaa hakulause tuo muiden medioiden juttuja (aiheutti Cisco-duplikaatit).
 - Suora RSS on aina paras: oikeat päivämäärät ja linkit. Google News antaa
-  joskus vanhalle jutulle tuoreen päiväyksen.
+  joskus vanhalle jutulle tuoreen päiväyksen. Tarkista silti, että syötteessä on
+  `<link>`: esim. swissgolf.ch/rss antaa vain guidin, joten artikkeliin ei pääse.
+- **Tarkista aina HTML-lähteen päivämääräselektori.** Päivämäärätön artikkeli
+  tulkitaan tuoreeksi, joten osumaton selektori nostaa vanhat jutut raporttiin
+  ikuisesti tuoreina. Näin kävi Islannille, Italialle ja Tanskalle (7/2026).
+- Templaattisivustot (Knockout, Vue) näyttävät toimivilta: kortteja löytyy, mutta
+  ne ovat tyhjiä runkoja, joissa linkki on `#!` ja otsikoksi valikoituu CMS:n
+  painike ("Edit Article"). `fetch.py` hylkää nyt listaussivulle itseensä
+  osoittavat linkit — jos lähde tuottaa outoja otsikoita, epäile templaattia.
+- **Nollalähde ei ole aina rikki.** Erottele: "N liian vanhaa" = lähde toimii,
+  julkaisee harvoin (esim. STERF, SGF, OKM). "muun median juttua" tai
+  "puutteellista" = reitti on väärä ja se kannattaa korjata.
 
 ## Julkaisu
 

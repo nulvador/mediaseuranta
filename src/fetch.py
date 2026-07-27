@@ -23,6 +23,53 @@ log = logging.getLogger(__name__)
 MIN_TITLE_LEN = 12
 _GN_SUFFIX = re.compile(r"\s+[-–|]\s+[^-–|]{2,40}$")
 
+# Kuukaudennimet lähteiden kielillä. dateutil tuntee vain englannin, ja fuzzy=True
+# täyttää tunnistamattoman kuukauden NYKYHETKESTÄ: "5. juli 2026" tulkittiin
+# päiväksi 2026-05-27. Väärä tuore päivämäärä nostaa vanhan jutun raporttiin,
+# joten kuukaudet käännetään numeroiksi ennen dateutilia.
+_MONTH_NAMES = {
+    1: ["tammikuu", "januari", "januar", "janúar", "january", "jänner", "janvier",
+        "enero", "gennaio", "styczeń", "styczen", "stycznia", "jaanuar"],
+    2: ["helmikuu", "februari", "februar", "febrúar", "february", "février", "fevrier",
+        "febrero", "febbraio", "luty", "lutego", "veebruar"],
+    3: ["maaliskuu", "mars", "marts", "march", "märz", "marz", "maart", "marzo",
+        "marzec", "marca", "märts"],
+    4: ["huhtikuu", "april", "apríl", "avril", "abril", "aprile", "kwiecień",
+        "kwiecien", "kwietnia", "aprill"],
+    5: ["toukokuu", "maj", "mai", "may", "maí", "mei", "mayo", "maggio", "maja"],
+    6: ["kesäkuu", "kesakuu", "juni", "june", "júní", "juin", "junio", "giugno",
+        "czerwiec", "czerwca"],
+    7: ["heinäkuu", "heinakuu", "juli", "july", "júlí", "juillet", "julio", "luglio",
+        "lipiec", "lipca"],
+    8: ["elokuu", "augusti", "august", "ágúst", "août", "aout", "agosto", "augustus",
+        "sierpień", "sierpien", "sierpnia"],
+    9: ["syyskuu", "september", "septembra", "septembre", "septiembre", "settembre",
+        "wrzesień", "wrzesien", "września", "wrzesnia"],
+    10: ["lokakuu", "oktober", "október", "octobre", "octubre", "ottobre",
+         "październik", "pazdziernik", "października", "pazdziernika"],
+    11: ["marraskuu", "november", "nóvember", "novembre", "noviembre", "listopad",
+         "listopada"],
+    12: ["joulukuu", "december", "desember", "dezember", "décembre",
+         "decembre", "diciembre", "dicembre", "grudzień", "grudzien", "grudnia"],
+}
+# nimi -> kuukausinumero; myös 3-merkkiset lyhenteet (esim. "jul", "des", "okt")
+_MONTH_LOOKUP: dict[str, int] = {}
+for _num, _names in _MONTH_NAMES.items():
+    for _n in _names:
+        _MONTH_LOOKUP.setdefault(_n, _num)
+        _MONTH_LOOKUP.setdefault(_n[:3], _num)
+
+# "5. juli 2026", "16 maj 2025", "5 de julio de 2026", "26. juni 2026"
+_DMY_RE = re.compile(
+    r"\b(\d{1,2})\.?\s+(?:de\s+)?([^\W\d_]{3,12})\.?,?\s+(?:de\s+|del\s+)?(\d{4})\b",
+    re.UNICODE)
+# "juli 5, 2026", "July 5 2026"
+_MDY_RE = re.compile(
+    r"\b([^\W\d_]{3,12})\.?\s+(\d{1,2})\.?,?\s+(\d{4})\b", re.UNICODE)
+# ISO-muoto on aina vuosi-kuukausi-päivä. dayfirst=True sai dateutilin kääntämään
+# sen ("2026-07-03" -> 3.3.2026), joten ISO tunnistetaan ennen dateutilia.
+_ISO_RE = re.compile(r"\b(\d{4})-(\d{2})-(\d{2})\b")
+
 
 # ---------------------------------------------------------------- helpers
 def clean_title(title: str, google_news: bool = False) -> str:
@@ -33,10 +80,38 @@ def clean_title(title: str, google_news: bool = False) -> str:
     return title
 
 
+def _localised_date(text: str) -> Optional[datetime.date]:
+    """Tunnista 'päivä kuukaudennimi vuosi' lähteiden kielillä."""
+    low = text.lower()
+    for rx, order in ((_DMY_RE, "dmy"), (_MDY_RE, "mdy")):
+        for m in rx.finditer(low):
+            if order == "dmy":
+                day, name, year = m.group(1), m.group(2), m.group(3)
+            else:
+                name, day, year = m.group(1), m.group(2), m.group(3)
+            month = _MONTH_LOOKUP.get(name) or _MONTH_LOOKUP.get(name[:3])
+            if not month:
+                continue
+            try:
+                return datetime.date(int(year), month, int(day))
+            except ValueError:
+                continue
+    return None
+
+
 def parse_date(text: str) -> Optional[datetime.date]:
     if not text:
         return None
     text = text.strip()
+    iso = _ISO_RE.search(text)
+    if iso:
+        try:
+            return datetime.date(int(iso.group(1)), int(iso.group(2)), int(iso.group(3)))
+        except ValueError:
+            pass
+    localised = _localised_date(text)
+    if localised is not None:
+        return localised
     try:
         return dateparser.parse(text, fuzzy=True, dayfirst=True).date()
     except (ValueError, OverflowError, TypeError):
@@ -197,6 +272,13 @@ def fetch_html(source: Source, since: datetime.date) -> tuple[list[dict], dict]:
             diag["bad"] += 1
             continue
         url = urljoin(source.html_url, link_el["href"])
+        # Templaattisivustoilla (Knockout, Vue) kortit ovat tyhjiä runkoja: linkki on
+        # "#!" ja sisältö haetaan JS:llä. Silloin osoite osoittaa listaussivulle
+        # itseensä ja otsikoksi valikoituu CMS:n painike ("Edit Article").
+        # Tällaiset eivät ole artikkeleita.
+        if url.split("#")[0].rstrip("/") == source.html_url.split("#")[0].rstrip("/"):
+            diag["bad"] += 1
+            continue
 
         date_obj = None
         date_el = _select_first(c, sel.get("date", []))

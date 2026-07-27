@@ -136,7 +136,10 @@ sources:
     tab: urheilu_liitot
     country: Suomi
     language: fi
-    # Rajataan ministeriön uutisista liikuntaan liittyvät
+    # OKM:n liikunta-aihesivulla on oma Liferay-RSS: valmiiksi liikuntaan rajattu,
+    # oikeat päivämäärät eikä muiden medioiden juttuja. Tarkempi kuin site:-haku,
+    # joka ei tuottanut yhtään tuoretta osumaa. Vapaa haku jää varareitiksi.
+    rss: https://okm.fi/liikunta/-/asset_publisher/apw5SHHIof2m/rss
     google_news_query: 'site:okm.fi liikunta OR urheilu OR valtionavustus'
 
   # ================= GOLFLIITOT — POHJOISMAAT =================
@@ -145,21 +148,30 @@ sources:
     tab: golfliitot
     country: Ruotsi
     language: sv
-    # golf.se on JS-renderöity eikä Google News indeksoi sitä -> käytetään
-    # SGF:n Cision-pressisivua, joka renderöityy palvelimella.
-    html:
-      url: https://news.cision.com/se/svenska-golfforbundet
-      selectors:
-        container: ["article", ".item", ".news-item", ".listItem", ".release-item", "li"]
-    google_news: golf.se
+    # SGF siirtyi Cisionista TT:n pressihuoneeseen — Cision-sivun tuorein tiedote
+    # oli 5/2025. golf.se on JS-renderöity staattinen infosivusto ilman uutisosiota
+    # (ei RSS:ää, ei /nyheter-polkua), joten TT:n syöte on SGF:n ainoa uutisreitti.
+    # publisherId 3237066 = Svenska Golfförbundet (golf.se/pressrum upottaa saman).
+    # google_news: golf.se poistettu: site:-haku tuotti 77 muun median juttua eikä
+    # yhtään SGF:n omaa — pelkkää melua lähdeterveystaulukossa.
+    rss: https://via.tt.se/rss/releases/latest?publisherId=3237066
 
   - id: dgu_denmark
     name: Dansk Golf Union (DGU)
     tab: golfliitot
     country: Tanska
     language: da
+    # Oletusselektorit osuivat vain yhteen <article>-elementtiin (koko sivun runko)
+    # eivätkä löytäneet päivämäärää -> lähde tuotti yhden päivämäärättömän jutun,
+    # joka näkyi raportissa aina tuoreena. Jokainen tiedote on <a>, jonka sisällä
+    # .dgu-teaser; päivämäärä on muodossa "19/06-2026".
     html:
       url: https://www.danskgolfunion.dk/pressemeddelelser
+      selectors:
+        container: ["a:has(.dgu-teaser)"]
+        title: ["h2.dgu-teaser__title", ".dgu-teaser__title", "h2", "h3"]
+        date: ["div.dgu-teaser__show", ".dgu-teaser__show"]
+        summary: [".dgu-teaser__text", "p"]
     google_news: danskgolfunion.dk
 
   - id: ngf_norway
@@ -167,8 +179,16 @@ sources:
     tab: golfliitot
     country: Norja
     language: "no"
-    # Ei RSS-syötettä (tarkistettu 7/2026), sivusto JS-renderöity ->
-    # Google News on ainoa toimiva reitti.
+    # Ei RSS-syötettä (tarkistettu 7/2026). Pressitiedotearkisto renderöityy
+    # palvelimella: jokainen tiedote on <a class="col-md-6 ...">, jonka sisällä
+    # pvm <p class="small">, otsikko <h6> ja ingressi <p>.
+    html:
+      url: https://www.golfforbundet.no/om/presse/pressemeldinger
+      selectors:
+        container: ["a.col-md-6", "a[class*=col-]"]
+        title: ["h6", "h5", "h4"]
+        date: ["p.small", ".small"]
+        summary: ["p:nth-of-type(2)", "p"]
     google_news: golfforbundet.no
 
   - id: gsi_iceland
@@ -176,8 +196,12 @@ sources:
     tab: golfliitot
     country: Islanti
     language: is
+    # Elementor-teema: päivämäärä on span.elementor-post-date, jota oletusselektorit
+    # eivät löytäneet -> jutut näkyivät päivämäärättöminä eli aina tuoreina.
     html:
       url: https://www.golf.is/frettir/
+      selectors:
+        date: ["span.elementor-post-date", ".elementor-post-date", "time", ".date"]
     google_news: golf.is
 
   - id: sterf
@@ -185,9 +209,11 @@ sources:
     tab: golfliitot
     country: Pohjoismaat
     language: en
+    # HTML-varareitti poistettu: sterf.org/news/ listaa jutut ilman päivämääriä,
+    # ja päivämäärätön artikkeli tulkitaan tuoreeksi -> vanhat tutkimusuutiset
+    # nousisivat raporttiin uusina. RSS toimii ja sisältää oikeat päivämäärät;
+    # STERF julkaisee harvoin, joten hiljaiset jaksot ovat normaaleja.
     rss: https://sterf.org/feed/
-    html:
-      url: https://sterf.org/news/
 
   # ================= GOLFLIITOT — EUROOPPA =================
   - id: ega
@@ -222,8 +248,11 @@ sources:
     tab: golfliitot
     country: Irlanti
     language: en
-    html:
-      url: https://www.golfireland.ie/news
+    # HTML-reitti poistettu 7/2026: golfireland.ie/news on Knockout-templaatti,
+    # jonka uutiskortit ovat tyhjiä runkoja (linkki "#!", otsikoksi valikoitui CMS:n
+    # "Edit Article"). Lähde näytti tuottavan 8 juttua, jotka olivat kaikki roskaa.
+    # Oikea sisältö tulee POST-APIsta /api/news/GetNewsArticles (clubWebsiteId +
+    # pageSize), jota fetch.py ei tue -> toistaiseksi vain Google News.
     google_news: golfireland.ie
 
   - id: dgv_germany
@@ -249,7 +278,9 @@ sources:
     tab: golfliitot
     country: Hollanti
     language: nl
-    # RSS ei vastaa ja uutissivu on JS-renderöity -> vain Google News
+    # Ei RSS:ää. Uutislistaus /over-de-ngf/nieuws latautuu JS:llä, eikä sivustolla
+    # näy päivämääriä missään — vain kuukausi artikkelin URL:ssa (/2026/jul/),
+    # mikä ei riitä 5 päivän ikkunaan. -> Google News on ainoa reitti.
     google_news: ngf.nl
 
   - id: rfeg_spain
@@ -266,8 +297,12 @@ sources:
     tab: golfliitot
     country: Italia
     language: it
+    # JegTheme: päivämäärä on div.jeg_meta_date ("26 Luglio 2026"), jota
+    # oletusselektorit eivät löytäneet -> jutut näkyivät aina tuoreina.
     html:
       url: https://www.federgolf.it/news/
+      selectors:
+        date: ["div.jeg_meta_date", ".jeg_meta_date", "time", ".date"]
     google_news: federgolf.it
 
   - id: ogv_austria
@@ -285,9 +320,18 @@ sources:
     tab: golfliitot
     country: Sveitsi
     language: de-ch
-    # VAIN liiton oma domain. Huom: swissgolf.ch on JS-renderöity eikä
-    # välttämättä Google News -indeksissä -> lähde voi jäädä hiljaiseksi,
-    # mutta epävirallisia lähteitä ei haluta liittovälilehdelle.
+    # swissgolf.ch/rss on käyttökelvoton: merkinnöistä puuttuu <link> kokonaan
+    # (vain guid "swissgolf-news-de-1921"), joten artikkeliin ei pääse.
+    # Uutislistaus renderöityy palvelimella ja antaa oikeat URL:t ja päivämäärät.
+    # Container .CardTeaserSplit rajaa juuri uutiskortit: pelkkä .etx-card osuisi
+    # myös sisäkkäisiin kortteihin (jutut kaksin kappalein) ja uutiskirjenostoon.
+    html:
+      url: https://swissgolf.ch/de/news-magazin/news/
+      selectors:
+        container: [".CardTeaserSplit"]
+        title: ["h3", "h2", "h4"]
+        date: ["p.font-color-medium", ".font-color-medium"]
+        summary: ["p.etx-text-crop", ".etx-text-crop"]
     google_news_query: 'site:swissgolf.ch'
 
   - id: estonian_golf
@@ -314,8 +358,9 @@ sources:
     tab: golfliitot
     country: Kansainvälinen
     language: en
-    # Vain R&A:n oma sivusto. Huom: randa.org ei välttämättä ole Google News
-    # -indeksissä -> lähde voi olla hiljainen, mutta vain virallinen kelpaa.
+    # Vain R&A:n oma sivusto. Ei RSS:ää, ja /news/all-news renderöityy JS:llä
+    # ilman päivämääriä (tarkistettu 7/2026) -> HTML-reitti ei ole mahdollinen.
+    # Google News indeksoi randa.org:n, joten lähde herää kun R&A julkaisee.
     google_news: randa.org
 
   - id: theopen

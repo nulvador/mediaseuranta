@@ -41,6 +41,30 @@ def test_parse_date_garbage():
     assert parse_date("") is None
 
 
+def test_parse_date_localised_months():
+    # Lähteiden kielten kuukaudennimet. Ilman käännöstä dateutil täytti
+    # tunnistamattoman kuukauden nykyhetkestä: "5. juli 2026" -> 2026-05-27,
+    # jolloin vanha juttu näytti tuoreelta.
+    assert parse_date("5. juli 2026") == datetime.date(2026, 7, 5)          # no
+    assert parse_date("16 maj 2025") == datetime.date(2025, 5, 16)          # sv
+    assert parse_date("26 Luglio 2026") == datetime.date(2026, 7, 26)       # it
+    assert parse_date("5 de julio de 2026") == datetime.date(2026, 7, 5)    # es
+    assert parse_date("12. ágúst 2026") == datetime.date(2026, 8, 12)       # is
+    assert parse_date("27. Juli 2026") == datetime.date(2026, 7, 27)        # de
+    assert parse_date("8 lipca 2026") == datetime.date(2026, 7, 8)          # pl
+
+
+def test_parse_date_iso_not_dayfirst():
+    # dayfirst=True sai dateutilin kääntämään ISO-päivämäärän kuukausi/päivä
+    assert parse_date("2026-07-03") == datetime.date(2026, 7, 3)
+    assert parse_date("2025-05-16 08:00:00Z") == datetime.date(2025, 5, 16)
+
+
+def test_parse_date_danish_slash_dash():
+    # Dansk Golf Union käyttää muotoa 19/06-2026
+    assert parse_date("19/06-2026") == datetime.date(2026, 6, 19)
+
+
 # ---------------------------------------------------------------- store
 @pytest.fixture()
 def conn(tmp_path):
@@ -50,9 +74,12 @@ def conn(tmp_path):
 
 
 def _art(url="https://x.fi/a", title="Testiotsikko pitkä kyllä"):
+    # Päivämäärä suhteessa tähän päivään: pending_articles rajaa REPORT_DAYS-ikkunaan,
+    # joten kovakoodattu päivä vanhenee ikkunan ulkopuolelle ja kaataa testit.
+    published = (datetime.date.today() - datetime.timedelta(days=1)).isoformat()
     return {"source_id": "s1", "source_name": "Lähde", "tab": "golfliitot",
             "country": "Suomi", "language": "fi", "title": title,
-            "url": url, "published": "2026-07-01", "summary": "Ingressi"}
+            "url": url, "published": published, "summary": "Ingressi"}
 
 
 def test_insert_dedup(conn):
