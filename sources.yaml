@@ -80,7 +80,11 @@ sources:
     tab: urheilu_liitot
     country: Suomi
     language: fi
-    rss: https://www.lentopalloliitto.fi/feed/
+    # Liitto on vaihtanut domainin lentopalloliitto.fi -> lentopallo.fi
+    rss: https://www.lentopallo.fi/feed/
+    html:
+      url: https://www.lentopallo.fi/uutiset/
+    google_news: lentopallo.fi
 
   - id: tennis
     name: Suomen Tennisliitto
@@ -163,9 +167,8 @@ sources:
     tab: golfliitot
     country: Norja
     language: "no"
-    rss: https://www.golfforbundet.no/feed/
-    html:
-      url: https://www.golfforbundet.no/ngf-nytt/
+    # Ei RSS-syötettä (tarkistettu 7/2026), sivusto JS-renderöity ->
+    # Google News on ainoa toimiva reitti.
     google_news: golfforbundet.no
 
   - id: gsi_iceland
@@ -211,9 +214,7 @@ sources:
     tab: golfliitot
     country: Skotlanti
     language: en
-    rss: https://www.scottishgolf.org/feed/
-    html:
-      url: https://www.scottishgolf.org/news/
+    # RSS ei vastaa ja uutissivu on JS-renderöity -> vain Google News
     google_news: scottishgolf.org
 
   - id: golf_ireland
@@ -248,9 +249,7 @@ sources:
     tab: golfliitot
     country: Hollanti
     language: nl
-    rss: https://www.ngf.nl/feed/
-    html:
-      url: https://www.ngf.nl/nieuws/
+    # RSS ei vastaa ja uutissivu on JS-renderöity -> vain Google News
     google_news: ngf.nl
 
   - id: rfeg_spain

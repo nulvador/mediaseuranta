@@ -92,27 +92,36 @@ def _entry_image(entry) -> str:
 
 # ---------------------------------------------------------------- RSS
 def fetch_rss(source: Source, url: str, since: datetime.date,
-              google_news: bool = False) -> tuple[list[dict], int]:
-    """Palauttaa (ikkunaan osuvat artikkelit, syötteen merkintöjen kokonaismäärä)."""
+              google_news: bool = False) -> tuple[list[dict], dict]:
+    """Palauttaa (ikkunaan osuvat artikkelit, diagnostiikka).
+
+    Diagnostiikka kertoo MIKSI merkintöjä karsiutui: väärä domain (Google News
+    palautti muiden medioiden juttuja), liian vanha, vai puuttuva otsikko/linkki.
+    """
     resp = _http_get(url)
     if resp is None:
-        return [], -1          # -1 = syöte ei vastannut
+        return [], {"total": -1}
     feed = feedparser.parse(resp.content)
-    total = len(feed.entries)
+    diag = {"total": len(feed.entries), "domain": 0, "old": 0, "bad": 0}
     articles = []
-    for entry in feed.entries[: config.MAX_PER_SOURCE * 3]:
+    # Selaa syöte laajasti: Google News ei aina järjestä tuloksia päivämäärän
+    # mukaan, joten tuoreet voivat olla vasta listan loppupuolella.
+    for entry in feed.entries[:120]:
         title = clean_title(entry.get("title", ""), google_news=google_news)
         link = (entry.get("link") or "").strip()
         if not title or len(title) < MIN_TITLE_LEN or not link:
+            diag["bad"] += 1
             continue
 
         # Google News site:-haku kattaa myös alidomainit (esim.
-        # performance.golf.at) -> hyväksy vain pääsivusto ja www.
+        # performance.golf.at) ja palauttaa joskus muiden medioiden juttuja
+        # -> hyväksy vain pääsivusto ja www.
         if google_news and source.google_news:
             src_href = (entry.get("source") or {}).get("href") or ""
             host = urlparse(src_href).netloc.lower()
             dom = source.google_news.lower()
             if host and host not in (dom, f"www.{dom}"):
+                diag["domain"] += 1
                 continue
 
         date_obj = None
@@ -124,6 +133,7 @@ def fetch_rss(source: Source, url: str, since: datetime.date,
         if date_obj is None:
             date_obj = parse_date(entry.get("published") or entry.get("updated") or "")
         if date_obj is None or date_obj < since:
+            diag["old"] += 1
             continue
 
         summary = ""
@@ -134,7 +144,7 @@ def fetch_rss(source: Source, url: str, since: datetime.date,
         articles.append(_article(source, title, link, date_obj.isoformat(), summary, image))
         if len(articles) >= config.MAX_PER_SOURCE:
             break
-    return articles, total
+    return articles, diag
 
 
 # ---------------------------------------------------------------- HTML
@@ -146,11 +156,11 @@ def _select_first(el, selectors: list):
     return None
 
 
-def fetch_html(source: Source, since: datetime.date) -> tuple[list[dict], int]:
-    """Palauttaa (ikkunaan osuvat artikkelit, löytyneiden konttien määrä)."""
+def fetch_html(source: Source, since: datetime.date) -> tuple[list[dict], dict]:
+    """Palauttaa (ikkunaan osuvat artikkelit, diagnostiikka)."""
     resp = _http_get(source.html_url)
     if resp is None:
-        return [], -1          # -1 = sivu ei vastannut
+        return [], {"total": -1}
     resp.encoding = resp.apparent_encoding or "utf-8"
     soup = BeautifulSoup(resp.text, "lxml")
     for tag in soup.select("nav, header, footer, aside, .sidebar, .menu, .navigation, script, style"):
@@ -163,21 +173,28 @@ def fetch_html(source: Source, since: datetime.date) -> tuple[list[dict], int]:
         if containers:
             break
     if not containers:
-        return [], 0           # sivu vastasi, mutta selektorit eivät osuneet
+        return [], {"total": 0}   # sivu vastasi, mutta selektorit eivät osuneet
 
+    diag = {"total": len(containers), "domain": 0, "old": 0, "bad": 0}
     articles = []
     for c in containers:
         title_el = _select_first(c, sel.get("title", []))
-        if title_el is None:
-            continue
-        title = clean_title(title_el.get_text())
+        title = clean_title(title_el.get_text()) if title_el is not None else ""
         if len(title) < MIN_TITLE_LEN:
+            # Varasuunnitelma: monella sivustolla otsikko on suoraan linkissä
+            # eikä h2/h3-elementissä. Valitse pisin järkevä linkkiteksti.
+            candidates = [clean_title(a.get_text()) for a in c.find_all("a")]
+            candidates = [t for t in candidates if len(t) >= MIN_TITLE_LEN]
+            title = max(candidates, key=len) if candidates else ""
+        if len(title) < MIN_TITLE_LEN:
+            diag["bad"] += 1
             continue
 
         link_el = c.find("a", href=True) or (title_el.find("a", href=True) if hasattr(title_el, "find") else None)
         if link_el is None and c.name == "a" and c.get("href"):
             link_el = c
         if link_el is None:
+            diag["bad"] += 1
             continue
         url = urljoin(source.html_url, link_el["href"])
 
@@ -192,6 +209,7 @@ def fetch_html(source: Source, since: datetime.date) -> tuple[list[dict], int]:
             if date_obj is None:
                 date_obj = parse_date(date_el.get_text())
         if date_obj is not None and date_obj < since:
+            diag["old"] += 1
             continue
         date_str = date_obj.isoformat() if date_obj else ""
 
@@ -208,7 +226,7 @@ def fetch_html(source: Source, since: datetime.date) -> tuple[list[dict], int]:
         articles.append(_article(source, title, url, date_str, summary, image))
         if len(articles) >= config.MAX_PER_SOURCE:
             break
-    return articles, len(containers)
+    return articles, diag
 
 
 # ---------------------------------------------------------------- orchestration
@@ -228,7 +246,7 @@ def fetch_source(source: Source, since: datetime.date) -> tuple[list[dict], dict
     notes = []
     for name, fn in methods:
         try:
-            articles, total = fn()
+            articles, diag = fn()
         except Exception as e:  # noqa: BLE001 — yksittäinen lähde ei saa kaataa ajoa
             notes.append(f"{name}: virhe ({e})")
             log.warning("%s %s epäonnistui: %s", source.id, name, e)
@@ -236,12 +254,22 @@ def fetch_source(source: Source, since: datetime.date) -> tuple[list[dict], dict
         if articles:
             health.update(method=name, count=len(articles))
             return articles, health
+
+        total = diag.get("total", 0)
         if total == -1:
-            notes.append(f"{name}: ei vastausta")
+            notes.append(f"{name}: ei vastausta (URL rikki tai sivusto estää)")
         elif total == 0:
-            notes.append(f"{name}: tyhjä (rikki tai ei sisältöä)")
+            notes.append(f"{name}: tyhjä syöte / selektorit eivät osu")
         else:
-            notes.append(f"{name}: OK, {total} merkintää mutta ei yhtään keruuikkunassa")
+            # Kerro tarkka syy: eniten karsineet suodattimet ensin
+            reasons = []
+            if diag.get("domain"):
+                reasons.append(f"{diag['domain']} muun median juttua (ei tätä lähdettä)")
+            if diag.get("old"):
+                reasons.append(f"{diag['old']} liian vanhaa")
+            if diag.get("bad"):
+                reasons.append(f"{diag['bad']} puutteellista")
+            notes.append(f"{name}: {total} merkintää — " + ", ".join(reasons or ["ei osumia"]))
 
     health["error"] = "; ".join(notes) or "ei hakutapoja"
     return [], health
