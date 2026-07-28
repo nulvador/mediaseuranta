@@ -114,7 +114,13 @@ Tee jokaiselle artikkelille:
        nurmilajike, biodiversiteetti golfkentillä
      * Kopioitava digipalvelu, tekoälyratkaisu tai avoin data (esim. AI-pohjainen
        tasoituslaskenta, uusi maksu-/tulospalvelujärjestelmä)
-     * Merkittävä kumppanuus, sponsorointi- tai rahoitusmalli
+     * LIITTOTASOINEN kumppanuus tai rahoitusmalli: liiton oma pää- tai
+       yhteistyökumppani, monivuotinen sopimus, uusi rahoitusratkaisu
+       (esim. "SGF ja Folksam jatkavat kolmivuotisella sopimuksella")
+     * Merkittävän sponsorin VETÄYTYMINEN tai rahoituksen loppuminen: se on
+       markkinasignaali golfin kaupallisesta vetovoimasta ja siksi
+       kiinnostavampi kuin uuden sponsorin tulo (esim. "Kroger ja P&G
+       vetäytyvät LPGA-kilpailun sponsoroinnista Cincinnatissa")
      * Jäsen-/harrastajakehitysdata syineen ("naisten osuus uusista 41 %")
      * Liiton talouskriisi, skandaali tai johdon väärinkäytös
      * Safeguarding / häirinnän vastaiset ohjeet ja toimintamallit
@@ -138,7 +144,10 @@ Tee jokaiselle artikkelille:
        sekä Suomessa järjestettävät kilpailut
    - keskitaso (harvinainen): kiinnostava ilmiö tai trendi ilman suoraa
      hyötyä, jota ei voi suoraan kopioida (esim. "golfarit siirtyvät
-     kärryihin", urheiluoikeudellinen tapaus).
+     kärryihin", urheiluoikeudellinen tapaus). Tähän kuuluu myös yksittäisen
+     ULKOMAISEN TURNAUKSEN nimi- tai pääsponsori (esim. "Buccellati Ladies
+     Italian Openin pääsponsoriksi"): kiinnostava mutta ei hyödynnettävissä,
+     toisin kuin liittotasoinen kumppanuus, joka on korkea.
    - matala: relevantiksi jäänyt arkijuttu, nimitykset, palkinnot,
      rutiininomainen mutta lievästi kiinnostava sisältö.
    EI KOSKAAN korkea: nimitykset, palkinnot, juhlavuodet, tapahtuman

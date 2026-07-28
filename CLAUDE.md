@@ -46,7 +46,9 @@ harvinainen välitila. Epäröidessä valitse alempi taso tai jätä pois.
 Golfliitot: sääntö-/tasoitus- (WHS) /amatööristatusmuutokset · R&A/USGA-tutkimukset
 ja kasvuraportit · golfin terveystutkimukset · kestävän kehityksen innovaatiot
 (vedenkäyttö, energia, nurmilajikkeet, biodiversiteetti) · kopioitavat
-digipalvelut ja tekoälyratkaisut · merkittävät kumppanuudet ja rahoitusmallit ·
+digipalvelut ja tekoälyratkaisut · **liittotasoiset** kumppanuudet ja
+rahoitusmallit · **merkittävän sponsorin vetäytyminen** (markkinasignaali, ja
+siksi kiinnostavampi kuin uuden sponsorin tulo) ·
 jäsenkehitysdata syineen · liiton talouskriisi tai skandaali · safeguarding ·
 olympiastatus · suurtapahtuman isäntäpaikka **vain Pohjoismaissa** · uudet
 pelimuodot ja konseptit · **majorit ja arvokilpailut vain tapahtumana** —
@@ -63,7 +65,9 @@ toimialan huolidata (vapaaehtoisten romahdus).
 ### Keltainen (keskitaso) — harvinainen
 
 Ilmiöjutut ilman suoraa hyötyä · IT-häiriöt ja tietoturvatapaukset ·
-urheiluoikeudelliset tapaukset · isäntäpaikkapäätökset muualla maailmassa.
+urheiluoikeudelliset tapaukset · isäntäpaikkapäätökset muualla maailmassa ·
+**yksittäisen ulkomaisen turnauksen nimisponsori** (vrt. liittotasoinen
+kumppanuus, joka on punainen).
 
 ### Vihreä (matala)
 
