@@ -40,10 +40,14 @@ def main() -> int:
     parser.add_argument("--report-only", action="store_true")
     parser.add_argument("--no-email", action="store_true")
     parser.add_argument("--reanalyze", nargs="?", const="all", metavar="TAB",
-                        help="analysoi artikkelit uudelleen (promptin muututtua). "
-                             "Valinnainen välilehti: golfliitot | urheilu_liitot")
+                        help="analysoi raportti-ikkunan artikkelit uudelleen "
+                             "(promptin muututtua). Valinnainen välilehti: "
+                             "golfliitot | urheilu_liitot")
     parser.add_argument("--purge", metavar="SOURCE_ID", action="append",
                         help="poista lähteen kaikki artikkelit ennen keruuta (voi toistaa)")
+    parser.add_argument("--dedupe", action="store_true",
+                        help="poista samasta jutusta kertyneet kaksoiskappaleet "
+                             "(sama otsikko, eri linkkireitti)")
     parser.add_argument("--restore", action="store_true",
                         help="palauta 'new'-tilaan jääneet jo analysoidut artikkelit "
                              "näkyviin (korjaa keskeytyneen uudelleenanalyysin)")
@@ -65,6 +69,10 @@ def main() -> int:
         n = store.purge_source(conn, source_id)
         log.info("Poistettu %d artikkelia lähteestä %s", n, source_id)
 
+    if args.dedupe:
+        n = store.dedupe_by_title(conn)
+        log.info("Kaksoiskappaleet: poistettu %d riviä", n)
+
     if args.restore:
         n = store.restore_stale(conn)
         log.info("Palautettu %d artikkelia näkyviin (stale)", n)
@@ -78,8 +86,9 @@ def main() -> int:
     if args.reanalyze:
         tab = None if args.reanalyze == "all" else args.reanalyze
         n = store.reset_analysis(conn, tab)
-        log.info("Uudelleenanalyysi%s: %d artikkelia palautettu jonoon",
-                 f" ({tab})" if tab else "", n)
+        log.info("Uudelleenanalyysi%s: %d artikkelia palautettu jonoon "
+                 "(raportti-ikkuna %d pv)",
+                 f" ({tab})" if tab else "", n, config.REPORT_DAYS)
 
     healths: list[dict] = []
     new_count = 0

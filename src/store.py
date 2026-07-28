@@ -9,6 +9,7 @@ import datetime
 import hashlib
 import json
 import logging
+import re
 import sqlite3
 from pathlib import Path
 
@@ -57,6 +58,29 @@ def url_hash(article: dict) -> str:
     return hashlib.md5(key.encode("utf-8")).hexdigest()
 
 
+def title_key(article: dict) -> str:
+    """Toinen dedup-avain: lähde + normalisoitu otsikko.
+
+    Sama juttu saapuu joskus kahta reittiä: Google News antaa opaakin
+    redirect-URLin ja suora RSS kanonisen URLin, joten url_hash eroaa ja
+    juttu päätyy raporttiin kahdesti. Otsikko on näissä tapauksissa
+    identtinen, joten se tunnistaa parin.
+
+    Normalisointi pidetään tarkoituksella suppeana (pienet kirjaimet,
+    välimerkit pois, välit tiivistetään): lähdenimen tai muun päätteen
+    katkaisu yhdistäisi myös aidosti eri juttuja, joilla on sama alku.
+    Avain on lähdekohtainen — kahden eri liiton uutinen samasta asiasta on
+    kaksi eri juttua, ja niistä promptti valitsee yhden relevantiksi.
+    """
+    title = (article.get("title") or "").casefold()
+    title = re.sub(r"[^\w\s]", " ", title)
+    title = re.sub(r"\s+", " ", title).strip()
+    if not title:
+        return ""
+    return hashlib.md5(
+        f"{article.get('source_id', '')}|{title}".encode("utf-8")).hexdigest()
+
+
 def connect(db_path: Path = None) -> sqlite3.Connection:
     conn = sqlite3.connect(db_path or config.DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -68,22 +92,43 @@ def connect(db_path: Path = None) -> sqlite3.Connection:
         conn.commit()
     except sqlite3.OperationalError:
         pass  # sarake on jo olemassa
+    try:
+        conn.execute("ALTER TABLE articles ADD COLUMN title_key TEXT DEFAULT ''")
+        # Avain lasketaan myös vanhoille riveille, jotta dedup-historia
+        # kattaa jo kerätyt jutut heti ensimmäisestä ajosta lähtien.
+        for row in conn.execute("SELECT id, source_id, title FROM articles").fetchall():
+            conn.execute("UPDATE articles SET title_key=? WHERE id=?",
+                         (title_key(dict(row)), row["id"]))
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass  # sarake on jo olemassa
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_articles_title_key "
+                 "ON articles(title_key)")
+    conn.commit()
     return conn
 
 
 def insert_new(conn: sqlite3.Connection, articles: list[dict]) -> int:
-    """Lisää vain aiemmin näkemättömät. Palauttaa lisättyjen määrän."""
+    """Lisää vain aiemmin näkemättömät. Palauttaa lisättyjen määrän.
+
+    Dedup kahdella avaimella: url_hash (sama linkki) ja title_key (sama juttu
+    eri reittiä). Toinen tarkistus tehdään kyselyllä eikä UNIQUE-rajoitteella,
+    koska vanhoissa kannoissa on jo ennen korjausta syntyneitä pareja."""
     now = datetime.datetime.now().isoformat(timespec="seconds")
     inserted = 0
     for a in articles:
+        tkey = title_key(a)
+        if tkey and conn.execute(
+                "SELECT 1 FROM articles WHERE title_key=? LIMIT 1", (tkey,)).fetchone():
+            continue          # sama otsikko samasta lähteestä jo kannassa
         cur = conn.execute(
             """INSERT OR IGNORE INTO articles
                (url_hash, url, source_id, source_name, tab, country, language,
-                title, summary, published, fetched_at, status, image)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?, 'new', ?)""",
+                title, summary, published, fetched_at, status, image, title_key)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?, 'new', ?,?)""",
             (url_hash(a), a.get("url"), a["source_id"], a["source_name"], a["tab"],
              a.get("country"), a.get("language"), a["title"], a.get("summary"),
-             a.get("published"), now, a.get("image", "")),
+             a.get("published"), now, a.get("image", ""), tkey),
         )
         inserted += cur.rowcount
     conn.commit()
@@ -205,15 +250,25 @@ def purge_source(conn: sqlite3.Connection, source_id: str) -> int:
     return cur.rowcount
 
 
-def reset_analysis(conn: sqlite3.Connection, tab: str = None) -> int:
+def reset_analysis(conn: sqlite3.Connection, tab: str = None,
+                   days: int = None) -> int:
     """Merkitse artikkelit uudelleenanalysoitaviksi promptin muututtua.
 
     analyzed -> stale: pysyy raportissa vanhalla arviolla, kunnes uusi ehtii
                        (raportti ei tyhjene).
     irrelevant -> new: arvioidaan uudelleen (ei näy ennen sitä).
-    tab: jos annettu, vain kyseinen välilehti (säästää Gemini-kutsuja)."""
-    where = " AND tab=?" if tab else ""
-    params = (tab,) if tab else ()
+    tab: jos annettu, vain kyseinen välilehti (säästää Gemini-kutsuja).
+
+    Rajaus raportti-ikkunaan on tarkoituksellinen: pending_articles ei
+    kuitenkaan poimi ikkunan ulkopuolisia, joten niiden merkitseminen ei
+    tuottaisi uutta arviota — se vain veisi ne expire_old_pending-kierroksella
+    'expired'-tilaan ja hukkaisi vanhan arvion turhaan."""
+    cutoff = _cutoff(days if days is not None else config.REPORT_DAYS)
+    where = f" AND {_EFF_DATE} >= ?"
+    params: tuple = (cutoff,)
+    if tab:
+        where += " AND tab=?"
+        params += (tab,)
     conn.execute(f"UPDATE articles SET status='stale' WHERE status='analyzed'{where}", params)
     cur = conn.execute(f"UPDATE articles SET status='new' WHERE status='irrelevant'{where}", params)
     conn.commit()
@@ -230,6 +285,37 @@ def restore_stale(conn: sqlite3.Connection) -> int:
         "WHERE status='new' AND COALESCE(title_fi,'') != ''")
     conn.commit()
     return cur.rowcount
+
+
+def dedupe_by_title(conn: sqlite3.Connection) -> int:
+    """Siivoa ennen title_key-korjausta syntyneet kaksoiskappaleet.
+
+    Samasta jutusta on kannassa useita rivejä, kun lähde on tarjonnut sen sekä
+    Google News -redirectinä että suorana linkkinä. Kustakin ryhmästä jää yksi:
+
+      1. elinkaaressa pisimmällä oleva (analysoitu työ ei mene hukkaan)
+      2. tasatilanteessa suora linkki ennen Google News -redirectiä
+      3. viimeisenä pienin id
+
+    Palauttaa poistettujen rivien määrän. Turvallinen ajaa uudelleen."""
+    order = {"analyzed": 0, "stale": 1, "irrelevant": 2, "new": 3, "expired": 4}
+    groups: dict[str, list[sqlite3.Row]] = {}
+    for row in conn.execute(
+            "SELECT id, title_key, status, url FROM articles WHERE title_key != ''"):
+        groups.setdefault(row["title_key"], []).append(row)
+
+    removed = 0
+    for rows in groups.values():
+        if len(rows) < 2:
+            continue
+        rows.sort(key=lambda r: (order.get(r["status"], 9),
+                                 "news.google.com" in (r["url"] or ""),
+                                 r["id"]))
+        for r in rows[1:]:
+            conn.execute("DELETE FROM articles WHERE id=?", (r["id"],))
+            removed += 1
+    conn.commit()
+    return removed
 
 
 def purge_old(conn: sqlite3.Connection, days: int) -> int:
@@ -269,8 +355,8 @@ def import_legacy_json(conn: sqlite3.Connection, path: Path) -> int:
             """INSERT OR IGNORE INTO articles
                (url_hash, url, source_id, source_name, tab, country, language,
                 title, summary, published, fetched_at, status,
-                title_fi, summary_fi, category, priority, themes)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                title_fi, summary_fi, category, priority, themes, title_key)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (url_hash(row), row["url"], row["source_id"],
              a.get("source_name") or a.get("source") or "", tab,
              a.get("country") or "", a.get("language") or "",
@@ -278,7 +364,8 @@ def import_legacy_json(conn: sqlite3.Connection, path: Path) -> int:
              a.get("published") or a.get("date") or "", now, status,
              title_fi, a.get("summary_fi") or "", a.get("category") or "",
              a.get("priority") or "",
-             json.dumps(a.get("themes") or [], ensure_ascii=False)),
+             json.dumps(a.get("themes") or [], ensure_ascii=False),
+             title_key(row)),
         )
         imported += cur.rowcount
     conn.commit()

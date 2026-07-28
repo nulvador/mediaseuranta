@@ -11,10 +11,17 @@ BATCH_SIZE (50). Kiintiö nollautuu n. klo 10 Suomen aikaa.
 
 - ÄLÄ ehdota `--reanalyze` koko kannalle. Se on satoja artikkeleita = koko
   päiväkiintiö. Käytä korkeintaan yhtä välilehteä: `--reanalyze urheilu_liitot`.
+- `--reanalyze` koskee vain raportti-ikkunan (5 pv) artikkeleita. Vanhempia ei
+  kannata merkitä: `pending_articles` ei poimi niitä, joten uusi arvio ei
+  koskaan valmistuisi — merkintä vain hukkaisi vanhan arvion `expired`-tilaan.
 - Promptin muutokset vaikuttavat uusiin artikkeleihin automaattisesti.
-  Vanhoja ei tarvitse ajaa uusiksi.
+  Vanhoja ei tarvitse ajaa uusiksi. Muista silti: **jos muutat vain toisen
+  välilehden promptia, raportissa näkyvät saman välilehden vanhat arviot ovat
+  edelleen vanhalla promptilla tehtyjä.** Jos haluat nähdä muutoksen heti,
+  `--reanalyze <välilehti>` on tähän oikea ja kiintiön kannalta halpa työkalu.
 - Ilman Geminiä toimivat: `--report-only`, `--skip-analysis`, `--restore`,
-  `--purge`, lähdekorjaukset, ulkoasumuutokset. Suosi näitä kehityksessä.
+  `--dedupe`, `--purge`, lähdekorjaukset, ulkoasumuutokset. Suosi näitä
+  kehityksessä.
 
 ## Artikkelin elinkaari (status)
 
@@ -28,6 +35,38 @@ BATCH_SIZE (50). Kiintiö nollautuu n. klo 10 Suomen aikaa.
 
 Keskeinen periaate: **raportti ei saa koskaan tyhjentyä**. Siksi
 uudelleenanalyysi merkitsee `stale` (näkyy yhä) eikä `new` (katoaisi).
+
+Malli jättää joskus rivejä kokonaan pois vastauksesta — tyypillisesti niitä,
+jotka se karsisi portissa A. Ne jäävät `new`-tilaan ja lähtevät uudelleen
+seuraavassa ajossa. Promptin loppu vaatii nyt yhden objektin joka riviä kohti,
+ja `_analyze_batch` **varoittaa lokissa** puuttuvista otsikoineen. Jos loki
+sanoo "Analysoidaan 120" mutta "Analysoitu 112", varoitus kertoo mitkä kahdeksan
+jäivät ja miksi — ilman sitä ero jäi ennen kokonaan huomaamatta.
+
+## Dedup: kaksi avainta
+
+Sama juttu saapuu usein kahta reittiä: Google News antaa opaakin
+redirect-URLin ja suora RSS kanonisen linkin. Pelkkä `url_hash` ei tunnista
+paria, joten juttu analysoitiin kahdesti ja saattoi päätyä raporttiin
+kaksi kertaa — pahimmillaan **eri verdiktillä** (sama otsikko sekä `analyzed`
+että `irrelevant`).
+
+- `url_hash` = sama linkki, `title_key` = lähde + normalisoitu otsikko.
+- Normalisointi on tarkoituksella suppea: pienet kirjaimet, välimerkit pois,
+  välit tiivistetään. **Älä lisää lähdenimen tai päätteen katkaisua** — se
+  yhdistäisi myös aidosti eri juttuja, joilla on sama alku.
+- Avain on lähdekohtainen. Kahden eri liiton uutinen samasta asiasta on kaksi
+  eri juttua; niistä promptti valitsee yhden relevantiksi.
+- `--dedupe` siivoaa ennen korjausta syntyneet parit. Kustakin ryhmästä jää
+  elinkaaressa pisimmällä oleva rivi, tasatilanteessa suora linkki ennen
+  Google News -redirectiä. Ei kuluta Gemini-kutsuja, turvallinen ajaa uudelleen.
+
+Tiedostettu kompromissi: jos lähde julkaisee toistuvasti **täsmälleen samalla
+otsikolla** (nimeämätön uutiskirje tms.), vain ensimmäinen menee läpi
+`RETENTION_DAYS`-ikkunan ajan. Havaituissa tapauksissa toistuvassa otsikossa on
+aina erotin (viikkonumero, kuukausi, päivä), ja loput olivat navigaatioroskaa
+("Tulospalvelu Palloliitto"). Jos jokin lähde vaikuttaa hiljenneen ilman syytä,
+tarkista ensin `title_key`-törmäys — älä oleta lähdettä rikkinäiseksi.
 
 ## Ikäsäännöt
 
@@ -57,12 +96,16 @@ formaatista, isäntäpaikasta, taloudesta, kumppanuuksista. Kohta (c) **ei** kat
 kilpailun käytännön pyörittämistä (live-tulospalvelu, aikataulut,
 ilmoittautumiset, osallistujalistat) edes arvokilpailussa — tämä rajaus on
 pakollinen, koska ilman sitä malli päästi läpi live-tulosseurannan punaisena.
+Samasta syystä (c) ei kata **yksittäisen kilpailun peruutusta, siirtoa tai
+lyhentämistä** silloinkaan, kun tiedote tulee liitolta: kohta (c) tarkoittaa
+pysyvää linjausta, ei yhden kilpailun järjestelyuutista.
 
 **Portti B — arkirutiini.** Ilmoittautumiset ja yksittäiset talkookutsut,
 aikataulut, tapahtumatiedotteet ja -ennakot, jälkiraportit, yksittäiset
-turnaukset ja muistokilpailut (myös golf-bridge), klubien omat kilpailut,
-tavanomaiset valmentaja- ja tuomarikoulutukset, kenttälistaukset, golfmatkailu,
-lehden uusi numero, navigaatio, mainokset.
+turnaukset ja muistokilpailut (myös golf-bridge), hyväntekeväisyys- ja
+julkkisturnaukset, klubien omat kilpailut, tavanomaiset valmentaja- ja
+tuomarikoulutukset, kenttälistaukset, golfmatkailu, lehden uusi numero,
+navigaatio, mainokset.
 
 Lajiliitto-välilehdellä portti A on tiukempi: **suomalaispoikkeusta ei ole**,
 myös Suomen mitalit karsiutuvat. Golfliittoa kiinnostavat muiden lajien
@@ -132,6 +175,14 @@ Tämä on setin hankalin raja, joten se on kirjattu erikseen: käyttöön otettu
 rinnalle"), **inkluusiokärkinen kilpailu-uutinen keltainen** ("Vammaisgolfin EM
 käynnistyi – inkluusio keskiössä"), **para-golfin tulokset pois** kuten muutkin
 ulkomaiset tulokset.
+
+Neljäs ja kavalin tapaus: **matalan kynnyksen MALLI on punainen, yksittäisen
+tapahtuman ENNAKKO on pois** (portti B) — vaikka ennakko luettelisi täsmälleen
+samat hyvät ominaisuudet: matala kynnys, edullinen osallistumismaksu, rento
+ilmapiiri, naisten ja aloittelijoiden houkuttelu. Punainen vaatii, että juttu
+kuvaa mallin: kuka otti käyttöön ja miten se toimii. Kalibroitu esimerkki
+poissuljetusta: "Dr Irena Eris Ladies Golf Tour saapuu Tokary Golf Clubille"
+(7/2026 malli nosti tämän punaiseksi, koska ingressi korosti matalaa kynnystä).
 
 **Kalibrointitapa:** kun käyttäjä sanoo "tämä oli väärässä laatikossa", lisää
 kyseinen otsikko esimerkkinä oikean tason listaan promptissa. Poista samalla

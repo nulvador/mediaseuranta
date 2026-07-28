@@ -66,24 +66,36 @@ Tee jokaiselle artikkelille:
      (c) juttu ei kerro suorituksista vaan liittotasoisesta päätöksestä:
          säännöistä, formaatista, isäntäpaikasta, taloudesta, kumppanuuksista.
    Kohta (c) ei kata kilpailun käytännön pyörittämistä: live-tulospalvelu,
-   aikataulut, ilmoittautumiset ja osallistujalistat ovat POIS silloinkin,
-   kun ne liittyvät arvokilpailuun.
+   aikataulut, ilmoittautumiset, osallistujalistat sekä yksittäisen kilpailun
+   peruutus, siirto tai sään takia lyhentäminen ovat POIS silloinkin, kun ne
+   liittyvät arvokilpailuun ja kun tiedote tulee liitolta. Kohta (c) tarkoittaa
+   pysyvää linjausta, ei yhden kilpailun järjestelyuutista.
    POIS esim: "Sveitsin mestaruuskilpailut: Olesenille ja Serralle tittelit",
    "Clarissa Rattaggi viidenneksi U16-EM:ssä", "Puolalaisille historiallinen
    tulos European Young Mastersissa", "Ranskan nuorten mestaruuskilpailut:
    tulevaisuus on turvattu", "Ryan Fox voitti Claret Jugin", "Vammaisgolfin
-   EM: Saksa voitti kultaa", "Seuraa mestaruuskilpailuja live-tuloksista"
+   EM: Saksa voitti kultaa", "Seuraa mestaruuskilpailuja live-tuloksista",
+   "Virallinen tiedote: Ranskan miesten Mid-Amateur-joukkuemestaruuskilpailut
+   peruttu"
 
    PORTTI B — ARKIRUTIINI. Ilmoittautumiset sekä yksittäiset talkoo- ja
    toimitsijakutsut, aikataulut ja kisakalenterit, tapahtumatiedotteet ja
    -ennakot, tapahtuman jälkiraportti tai onnistuminen, yksittäiset turnaukset
-   ja muistokilpailut myös sekamuotoiset, klubien omat kilpailut, tavanomaiset
-   valmentaja-, tuomari- ja ohjaajakoulutukset, kenttälistaukset ja
-   -esittelyt, golfmatkailu, lehden uusi numero, navigaatio, mainokset.
+   ja muistokilpailut myös sekamuotoiset, hyväntekeväisyys- ja julkkisturnaukset,
+   klubien omat kilpailut, tavanomaiset valmentaja-, tuomari- ja
+   ohjaajakoulutukset, kenttälistaukset ja -esittelyt, golfmatkailu, lehden
+   uusi numero, navigaatio, mainokset.
+   Tähän kuuluu myös yksittäisen tapahtuman tai kiertueen osakilpailun ennakko
+   silloinkin, kun se korostaa matalaa kynnystä, edullista osallistumismaksua,
+   rentoa ilmapiiriä tai naisten ja aloittelijoiden houkuttelua. Raja on tämä:
+   matalan kynnyksen MALLI on korkea (kohta 5), yksittäisen tapahtuman ENNAKKO
+   on pois — vaikka ennakko luettelisi samat hyvät ominaisuudet.
    POIS esim: "Puolan golf-bridge-mestaruuskilpailut järjestetään Binowissa"
    — sana mestaruus ei tee kilpailusta arvokilpailua —, "Italian Golfliiton
    uusi B-luokan apuvalmentajakurssi päättyi", "Haemme talkoolaisia
-   ensi viikon kilpailuun"
+   ensi viikon kilpailuun", "Dr Irena Eris Ladies Golf Tour saapuu Tokary Golf
+   Clubille", "Schweini, Kahn ja kumppanit hyväntekeväisyysgolfin
+   mestaruuskisoissa"
 
    Jos sama uutinen esiintyy monta kertaa, vain yksi relevant=true, muut false.
 2. title_fi: Käännä otsikko sujuvaksi, toimitukselliseksi suomeksi. ÄLÄ käännä
@@ -106,9 +118,10 @@ Tee jokaiselle artikkelille:
        nurmilajike, biodiversiteetti
      * Käytössä oleva kopioitava digipalvelu, tekoälyratkaisu tai avoin data:
        AI-pohjainen tasoituslaskenta, uusi maksu- tai tulospalvelujärjestelmä
-     * Käyttöön otettu uusi pelimuoto, konsepti tai inkluusiomalli:
-       simulaattoriliiga, matalan kynnyksen malli, "Sveitsi otti G4D-kilpailun
-       mestaruuskilpailujen rinnalle"
+     * Käyttöön otettu uusi pelimuoto, konsepti tai inkluusiomalli, kun juttu
+       kuvaa MALLIN — kuka otti käyttöön ja miten se toimii, ei vain yhtä
+       tapahtumaa: simulaattoriliiga, matalan kynnyksen malli, "Sveitsi otti
+       G4D-kilpailun mestaruuskilpailujen rinnalle"
      * Liittotasoinen kumppanuus tai rahoitusmalli: liiton oma pääkumppani,
        monivuotinen sopimus, "SGF ja Folksam jatkavat kolmivuotisella"
      * Merkittävän sponsorin VETÄYTYMINEN tai rahoituksen loppuminen. Se on
@@ -152,6 +165,10 @@ Tee jokaiselle artikkelille:
      * Kumppanien luettelointi: "The Openin lähetyskumppanit"
      * Muu relevantiksi jäänyt arkijuttu
 6. themes: 0-3 kpl näistä, vain jos selvästi osuvat: {themes}
+
+PAKOLLINEN: palauta täsmälleen yksi objekti JOKAISTA syötteen riviä kohti, myös
+karsituista (relevant=false). Rivimäärä sisään = rivimäärä ulos. Älä jätä
+karsittuja rivejä pois vastauksesta äläkä yhdistä kahta riviä yhdeksi.
 
 Artikkelit:
 {articles}"""
@@ -248,6 +265,10 @@ Tee jokaiselle artikkelille:
      * Muu relevantiksi jäänyt arkijuttu
 6. themes: 0-3 kpl näistä, vain jos selvästi osuvat: {themes}
 
+PAKOLLINEN: palauta täsmälleen yksi objekti JOKAISTA syötteen riviä kohti, myös
+karsituista (relevant=false). Rivimäärä sisään = rivimäärä ulos. Älä jätä
+karsittuja rivejä pois vastauksesta äläkä yhdistä kahta riviä yhdeksi.
+
 Artikkelit:
 {articles}"""
 
@@ -283,9 +304,11 @@ def _analyze_batch(client, batch: list[dict], tab: str) -> list[dict]:
     items: list[AnalyzedItem] = resp.parsed or []
 
     results = []
+    seen_rows: set[int] = set()
     for item in items:
-        if not 1 <= item.row <= len(batch):
-            continue
+        if not 1 <= item.row <= len(batch) or item.row in seen_rows:
+            continue                      # roskarivi tai sama rivi kahdesti
+        seen_rows.add(item.row)
         art = batch[item.row - 1]
         results.append({
             "article_id": art["id"],
@@ -296,6 +319,18 @@ def _analyze_batch(client, batch: list[dict], tab: str) -> list[dict]:
             "priority": item.priority,
             "themes": [t for t in item.themes if t in config.THEMES][:3],
         })
+
+    # Malli jättää joskus rivejä kokonaan pois vastauksesta (tyypillisesti niitä,
+    # jotka se karsisi portissa A). Ne jäisivät hiljaa 'new'-tilaan ja lähtisivät
+    # uudelleen joka ajossa ilman että lokista näkyy mitään — siksi varoitus.
+    missing = [a for i, a in enumerate(batch, 1) if i not in seen_rows]
+    if missing:
+        log.warning(
+            "Malli palautti %d/%d riviä — %d jäi ilman arviota ja yritetään "
+            "seuraavassa ajossa: %s",
+            len(seen_rows), len(batch), len(missing),
+            " · ".join(f"{a.get('source_id', '?')}: {(a.get('title') or '')[:60]}"
+                       for a in missing))
     return results
 
 

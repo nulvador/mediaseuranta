@@ -85,7 +85,49 @@ def _art(url="https://x.fi/a", title="Testiotsikko pitkä kyllä"):
 def test_insert_dedup(conn):
     assert store.insert_new(conn, [_art()]) == 1
     assert store.insert_new(conn, [_art()]) == 0          # sama url -> ei duplikaattia
-    assert store.insert_new(conn, [_art(url="https://x.fi/b")]) == 1
+    assert store.insert_new(conn, [_art(url="https://x.fi/b",
+                                        title="Eri otsikko kokonaan")]) == 1
+
+
+def test_insert_dedup_same_title_other_route(conn):
+    """Google News -redirect ja suora URL antavat eri url_hashin samasta
+    jutusta — otsikkoavain estää parin päätymisen raporttiin kahdesti."""
+    assert store.insert_new(conn, [_art(url="https://news.google.com/rss/CBMiOPAQ")]) == 1
+    assert store.insert_new(conn, [_art(url="https://x.fi/kanoninen")]) == 0
+    # Välimerkit ja kirjainkoko eivät saa erottaa samaa otsikkoa
+    assert store.insert_new(conn, [_art(url="https://x.fi/c",
+                                        title="TESTIOTSIKKO, pitkä kyllä!")]) == 0
+    # Eri lähde samasta asiasta on aito oma juttu
+    other = _art(url="https://y.fi/a")
+    other["source_id"] = "s2"
+    assert store.insert_new(conn, [other]) == 1
+
+
+def test_dedupe_by_title_keeps_analyzed(conn):
+    """Vanhat parit siivotaan niin, että analysoitu rivi jää ja raportti säilyy."""
+    gn = _art(url="https://news.google.com/rss/CBMiOPAQ")
+    conn.execute("INSERT INTO articles (url_hash, url, source_id, source_name, tab, "
+                 "title, published, fetched_at, status, title_key) "
+                 "VALUES (?,?,?,?,?,?,?,?,'irrelevant',?)",
+                 (store.url_hash(gn), gn["url"], gn["source_id"], gn["source_name"],
+                  gn["tab"], gn["title"], gn["published"], gn["published"],
+                  store.title_key(gn)))
+    conn.commit()
+    direct = _art(url="https://x.fi/kanoninen")
+    conn.execute("INSERT INTO articles (url_hash, url, source_id, source_name, tab, "
+                 "title, published, fetched_at, status, title_fi, title_key) "
+                 "VALUES (?,?,?,?,?,?,?,?,'analyzed','Suomennos',?)",
+                 (store.url_hash(direct), direct["url"], direct["source_id"],
+                  direct["source_name"], direct["tab"], direct["title"],
+                  direct["published"], direct["published"], store.title_key(direct)))
+    conn.commit()
+
+    assert store.dedupe_by_title(conn) == 1
+    rows = conn.execute("SELECT url, status FROM articles").fetchall()
+    assert len(rows) == 1
+    assert rows[0]["status"] == "analyzed"          # analysoitu työ säilyi
+    assert "news.google.com" not in rows[0]["url"]  # suora linkki säilyi
+    assert store.dedupe_by_title(conn) == 0         # idempotentti
 
 
 def test_analysis_checkpoint_lifecycle(conn):
