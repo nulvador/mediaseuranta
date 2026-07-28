@@ -70,6 +70,12 @@ Tee jokaiselle artikkelille:
    peruutus, siirto tai sään takia lyhentäminen ovat POIS silloinkin, kun ne
    liittyvät arvokilpailuun ja kun tiedote tulee liitolta. Kohta (c) tarkoittaa
    pysyvää linjausta, ei yhden kilpailun järjestelyuutista.
+   Kilpailun TEEMA ei kumoa porttia A. Jos jutussa on tuloksia, voittajia tai
+   mestareita, se on POIS vaikka otsikko korostaisi inklusiivisuutta,
+   kestävyyttä tai naisten asemaa: "Sveitsin mestaruuskilpailut korostivat
+   inklusiivisuutta – Olesen ja Serra mestareiksi" on POIS, koska mestarit on
+   nimetty. Teemakärki tekee jutusta keltaisen vain silloin, kun tuloksia ei
+   ole (kohta 5).
    POIS esim: "Sveitsin mestaruuskilpailut: Olesenille ja Serralle tittelit",
    "Clarissa Rattaggi viidenneksi U16-EM:ssä", "Puolalaisille historiallinen
    tulos European Young Mastersissa", "Ranskan nuorten mestaruuskilpailut:
@@ -87,9 +93,10 @@ Tee jokaiselle artikkelille:
    uusi numero, navigaatio, mainokset.
    Tähän kuuluu myös yksittäisen tapahtuman tai kiertueen osakilpailun ennakko
    silloinkin, kun se korostaa matalaa kynnystä, edullista osallistumismaksua,
-   rentoa ilmapiiriä tai naisten ja aloittelijoiden houkuttelua. Raja on tämä:
-   matalan kynnyksen MALLI on korkea (kohta 5), yksittäisen tapahtuman ENNAKKO
-   on pois — vaikka ennakko luettelisi samat hyvät ominaisuudet.
+   rentoa ilmapiiriä tai naisten ja aloittelijoiden houkuttelua. Sanat "matala
+   kynnys" tai "inklusiivisuus" eivät ole peruste päästää juttua portista läpi
+   — ne kuvaavat tässä vain tapahtuman luonnetta. Tämä osio KARSII; tason
+   valinta tehdään vasta kohdassa 5.
    POIS esim: "Puolan golf-bridge-mestaruuskilpailut järjestetään Binowissa"
    — sana mestaruus ei tee kilpailusta arvokilpailua —, "Italian Golfliiton
    uusi B-luokan apuvalmentajakurssi päättyi", "Haemme talkoolaisia
@@ -148,9 +155,9 @@ Tee jokaiselle artikkelille:
        Kumppanuusopas"
      * Suurtapahtuman isäntäpaikkapäätös muualla maailmassa: "Baltusrol
        isännöi vuoden 2046 U.S. Openia"
-     * Inkluusiokärkinen kilpailu-uutinen, jossa ei ole uutta mallia:
-       "Vammaisgolfin EM käynnistyi – inkluusio keskiössä", "Sveitsin
-       mestaruuskilpailut korostivat inklusiivisuutta"
+     * Inkluusiokärkinen kilpailu-uutinen, jossa ei ole uutta mallia EIKÄ
+       tuloksia: "Vammaisgolfin EM käynnistyi – inkluusio keskiössä". Jos
+       voittajat on nimetty, juttu karsiutui jo portissa A.
      * IT-häiriö tai tietoturvatapaus; urheiluoikeudellinen tapaus
 
    MATALA — hyvä TIEDOKSI, ei vaadi toimenpiteitä.
@@ -159,7 +166,10 @@ Tee jokaiselle artikkelille:
        kenttäkelpoisuustestiin"
      * Vapaaehtois- ja koulutusohjelmat: "Vapaaehtoisohjelma greenkeepereille
        Espanjan avoimiin". Yksittäiset talkookutsut ovat POIS (portti B)
-     * Rutiinikampanjat ja hinnoittelu: "syksyn jäsenmaksuale"
+     * Rutiinikampanjat ja hinnoittelu, myös vuosittain toistuva
+       tutustumisviikko: "syksyn jäsenmaksuale", "Get into Golf Week -kampanja
+       palaa elokuussa". Uusi kokeilumuoto olisi korkea, mutta saman kampanjan
+       paluu ei ole uutta
      * Liiton kannanotto yksittäiseen kv-asiaan
      * Kevyet henkilö- ja taustajutut: "Course Raterien jalanjäljillä"
      * Kumppanien luettelointi: "The Openin lähetyskumppanit"
