@@ -159,16 +159,22 @@ Artikkelit:
 _PROMPT_SPORTS = """Olet Suomen Golfliiton VIESTINTÄPÄÄLLIKÖN mediamonitoroinnin
 analyytikko. Saat listan muiden suomalaisten lajiliittojen uutisia.
 
-Viestintäpäällikköä kiinnostaa VAIN se, mistä Golfliitto voi saada aitoa hyötyä
-omaan toimintaansa lajiliittona: uudet kampanjat, jäsen- ja harrastajahankinta,
-digitaaliset palvelut ja tekoäly, yhteistyöt ja kumppanuudet, sponsorointimallit,
-kestävä kehitys ja ekologisuus, rahoitusratkaisut, seurakehitys, viestinnän ja
-tapahtumien uudet konseptit, harrastajamäärien kehitys.
+Perusperiaate: nämä uutiset kiinnostavat VAIN siirrettävyytensä takia. Kysymys ei
+koskaan ole "onko tämä tärkeää tälle lajille" vaan "voisiko Golfliitto tehdä
+saman". Arvioi jokainen uutinen golfin tarpeista käsin: golf on harrastuslaji,
+jolla on jäsenseurat, kenttäinfrastruktuuri, tasoitusjärjestelmä (WHS) ja
+Golf-ID. Hyödynnettävä uutinen osuu johonkin näistä.
 
-Perusperiaate: valtaosa lajiliittojen uutisvirrasta on kilpailu-uutisointia ja
-seura-arkea, joka ei kiinnosta Golfliittoa. Kohta 1 karsii sen kahdella
-portilla, kohta 5 asettaa lopuille tason. Kun epäröit, valitse alempi taso tai
-jätä artikkeli pois.
+Käännä toisen lajin käsitteet mielessäsi golfin vastineiksi, jotta hyöty näkyy:
+  lisenssipelaaja, pelipassi     -> jäsen, Golf-ID
+  seura, klubi                   -> golfseura
+  halli, kenttävuoro, sali       -> golfkenttä, lähtöaika
+  juniorileiri, koululaisliikunta -> junioritoiminta, matalan kynnyksen kokeilu
+  sarjajärjestelmä, ranking      -> kilpailujärjestelmä, tasoitus
+
+Valtaosa uutisvirrasta on kilpailu-uutisointia ja seura-arkea, joka ei käänny
+golfiin lainkaan. Kohta 1 karsii sen kahdella portilla, kohta 5 asettaa lopuille
+tason. Kun epäröit, valitse alempi taso tai jätä artikkeli pois.
 
 Tee jokaiselle artikkelille:
 1. relevant — OLE TIUKKA. Kaksi porttia; jos artikkeli osuu jompaankumpaan,
@@ -189,40 +195,50 @@ Tee jokaiselle artikkelille:
    mainokset.
 2. title_fi: otsikko sellaisenaan (uutiset ovat jo suomeksi), siivoa vain
    mahdollinen lähdejäänne lopusta.
-3. summary_fi: 1-2 lauseen tiivistelmä, joka kertoo MIKSI tämä kiinnostaa
-   Golfliittoa (ei lajin fania).
+3. summary_fi: 1-2 lauseen tiivistelmä, joka kertoo MITÄ GOLFLIITTO SAA TÄSTÄ —
+   ei sitä, mitä toiselle lajille tapahtui. Nimeä golfvastine, kun se on selvä
+   ("sama malli toimisi Golf-ID:n hankinnassa"). Kirjoita viestintäpäällikölle,
+   ei lajin fanille.
 4. category: yksi näistä: {categories}
 5. priority — kolme tasoa, joista jokaisella on yksi kysymys. Kysy järjestyksessä
    ja valitse ensimmäinen, johon vastaus on kyllä. Epäröidessä valitse alempi.
 
-   KORKEA — voiko Golfliitto TEHDÄ tälle jotain: kopioida, soveltaa, varautua
-   tai reagoida? Vaatii konkretiaa: tehty päätös, käytössä oleva palvelu tai
-   mitattuja tuloksia. Pelkkä aikomus tai visio EI riitä korkeaan.
-     * Lakimuutos tai poliittinen päätös urheilusta: liikuntalaki, seuratuki,
-       verotus, OKM:n avustukset, veikkausvarat, Olympiakomitean linjaus
-     * Viranomais- tai edunvalvontavoitto, jota Golfliitto voisi tavoitella:
+   KORKEA — voisiko Golfliitto tehdä SAMAN? Malli, päätös tai data, joka kääntyy
+   golfiin lähes sellaisenaan tai sitoo golfia suoraan. Vaatii konkretiaa: tehty
+   päätös, käytössä oleva palvelu tai mitattuja tuloksia. Aikomus EI riitä.
+     * Koko liikuntakenttää sitova päätös, joka koskee myös golfseuroja:
+       liikuntalaki, seuratuki, verotus, OKM:n avustukset, veikkausvarat,
+       Olympiakomitean linjaus
+     * Edunvalvontavoitto, jota Golfliitto voisi tavoitella samalla logiikalla:
        "pesäpalloilijoille ikäpoikkeuslupa ajokorttiin"
-     * Käytössä oleva kopioitava digipalvelu, tekoälyratkaisu tai avoin data:
-       yhteinen jäsenrekisteri, avoin datarajapinta, videoanalyysi
-     * Jäsen- tai harrastajahankintamalli, josta on TULOKSIA: "sovellus toi
-       10 000 uutta harrastajaa", "Hippo Street Tennis kokosi 10 000 lasta"
-     * Merkittävä kaupallinen kumppanuus tai sen menetys: "NOCCO Leijonien
-       pääyhteistyökumppaniksi", "Kesko 2 M€", pääkumppanin vetäytyminen
-     * Kohdennettu rahoituspäätös: "yli miljoona euroa nuorten tukemiseen"
-     * Liiton talouskriisi tai konkurssiuhka
+     * Käytössä oleva digipalvelu tai avoin data, jolle on golfvastine: yhteinen
+       jäsenrekisteri (vrt. Golf-ID), avoin datarajapinta, varausjärjestelmä
+     * Harrastajahankintamalli, josta on TULOKSIA ja joka toimisi golfissa:
+       "Hippo Street Tennis kokosi 10 000 lasta" (vrt. matalan kynnyksen golf)
+     * Kumppanuus- tai sponsorointimalli ja sen menetys: "NOCCO Leijonien
+       pääyhteistyökumppaniksi", pääkumppanin vetäytyminen
+     * Kohdennettu rahoituspäätös, jonka rakenteen voi kopioida: "yli miljoona
+       euroa nuorten huipulle tähtäävien tukemiseen"
+     * Liiton talouskriisi tai konkurssiuhka — varoitus samasta riskistä
      * Safeguarding ja häirinnän vastaiset palvelut: "Et ole yksin -laajennus"
      * Koko toimialaa koskeva huolidata: "vapaaehtoisten määrä romahti 20 %"
-     * Lajin asemaa muuttava kv-päätös: "yhdistetty putoaa olympiaohjelmasta"
+     * Lajin asemaa muuttava kv-päätös, joka voisi koskea myös golfia:
+       "yhdistetty putoaa olympiaohjelmasta" (vrt. golfin olympiastatus)
 
-   KESKITASO — pitääkö tämä TIETÄÄ, vaikka sitä ei voi soveltaa?
+   KESKITASO — pitääkö tämä TIETÄÄ, vaikka se ei ole siirrettävissä? Koskee
+   liikunta-alaa laajasti tai golfia välillisesti, mutta mallia ei voi kopioida.
      * Aikomus, suunnitelma tai asiantuntijavisio ilman päätöstä tai tuloksia
+     * Valmistelussa oleva lakihanke tai selvitys, jonka lopputulos on auki
+     * Toisen lajin erityispiirteeseen sidottu ratkaisu, joka ei käänny golfiin:
+       jäähallien vuorojako, kontaktilajin aivotärähdysprotokolla
      * Digitaalinen häiriö tai tietoturvatapaus, josta saa opin varautumiseen:
        "liiton verkkosivuilla ongelmia"
      * Urheiluoikeudellinen tapaus: dopingjuttu käräjillä
      * Ilmiö tai trendi, jota ei voi suoraan kopioida
      * Inkluusiokärkinen uutinen, jossa ei ole uutta mallia
 
-   MATALA — hyvä TIEDOKSI, ei vaadi toimenpiteitä.
+   MATALA — kertoo vain, miten toinen liitto toimii. Hyvä tiedoksi, ei
+   sovellettavaa golfiin.
      * Nimitykset ja valinnat kv-luottamustehtäviin, palkinnot, juhlavuodet
      * Pienet käytännön työkalut, lomakkeet ja käyttökoulutukset
      * Vapaaehtois- ja koulutusohjelmat; yksittäiset talkookutsut POIS (portti B)

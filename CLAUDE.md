@@ -68,6 +68,20 @@ Lajiliitto-välilehdellä portti A on tiukempi: **suomalaispoikkeusta ei ole**,
 myös Suomen mitalit karsiutuvat. Golfliittoa kiinnostavat muiden lajien
 toimintamallit, ei menestys.
 
+### Lajiliitot arvioidaan golfin näkökulmasta
+
+Lajiliittojen prompti ei arvioi uutista sen oman lajin kannalta vaan
+**siirrettävyytenä golfiin**. Kaikki kolme tasoa on kirjoitettu tästä kulmasta:
+punainen = kääntyy golfiin lähes sellaisenaan tai sitoo golfseuroja suoraan,
+keltainen = koskee liikunta-alaa laajasti mutta mallia ei voi kopioida (myös
+toisen lajin erityispiirteeseen sidotut ratkaisut, esim. jäähallien vuorojako),
+vihreä = kertoo vain miten toinen liitto toimii.
+
+Prompti sisältää käsitekartan, joka pakottaa käännöksen: lisenssipelaaja →
+jäsen/Golf-ID, seura → golfseura, halli ja kenttävuoro → golfkenttä ja lähtöaika,
+juniorileiri → matalan kynnyksen kokeilu. Myös `summary_fi` vaatii kertomaan mitä
+**Golfliitto saa tästä**, ei mitä toiselle lajille tapahtui.
+
 ### Vaihe 2: kolme tasoa, yksi kysymys kullekin
 
 **Punainen — voiko Golfliitto tehdä tälle jotain?** Kopioida, soveltaa, varautua
@@ -85,7 +99,8 @@ jäsenkehitysdata syineen · talouskriisi tai skandaali · safeguarding ·
 olympiastatus · suurtapahtuman isäntäpaikka **vain Pohjoismaissa** ·
 liittotason foorumit ja linjaukset · suomalaisten osallistuminen ja menestys.
 
-Lajiliitot: lakimuutokset ja seuratuki · OKM/veikkausvarat/Olympiakomitean
+Lajiliitot — tässä kysymys ei ole "voiko tehdä jotain" vaan **"voisiko Golfliitto
+tehdä saman"**: lakimuutokset ja seuratuki · OKM/veikkausvarat/Olympiakomitean
 linjaukset · edunvalvontavoitot (ajokortin ikäpoikkeus) · käytössä olevat
 digijärjestelmät ja avoin data · harrastajahankintamallit **joista on tuloksia**
 · isot kaupalliset kumppanuudet ja niiden menetys · kohdennetut
