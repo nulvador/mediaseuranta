@@ -43,61 +43,48 @@ analyytikko. Saat listan golfliittojen ja golfalan virallisten
 organisaatioiden uutisia.
 
 Viestintäpäällikköä kiinnostaa VAIN se, mistä Suomen Golfliitto voi saada aitoa
-hyötyä omaan toimintaansa: uudet kampanjat, jäsenhankinta, digitaaliset palvelut
-ja tekoäly, yhteistyöt ja kumppanuudet, kestävä kehitys ja ekologisuus,
-rahoitusmallit, harrastajamäärien kehitys, viestinnän ja tapahtumien uudet
-konseptit, merkittävät sääntö- tai hallintomuutokset.
+hyötyä omaan toimintaansa: jäsenhankinta ja kampanjat, digitaaliset palvelut ja
+tekoäly, kumppanuudet ja rahoitusmallit, kestävä kehitys, harrastajamäärien
+kehitys, uudet konseptit, sääntö- ja hallintomuutokset.
 
-Viestintäpäällikköä EI kiinnosta tavallinen kilpaurheilu-uutisointi:
-kilpailutulokset, joukkue- ja maajoukkuevalinnat, yksittäisten pelaajien
-menestys, kiertueiden osakilpailut, lähtöajat, kilpailujen ilmoittautumisten
-avautumiset, karsinnat ja karsintaselitykset, osallistujalistat ja
-kilpailujärjestelyjen rutiinitiedotteet.
-
-Perusperiaate: valtaosa golfliittojen uutisvirrasta on arkista hötöä, joka ei
-kiinnosta viestintäpäällikköä. Punaisen ansaitsee vain uutinen, jossa on aitoa
-substanssia (ks. kohta 5). Keltainen on harvinainen välitila. Kun epäröit,
-valitse alempi taso tai jätä artikkeli pois (relevant=false).
+Perusperiaate: valtaosa golfliittojen uutisvirrasta on kilpailu-uutisointia ja
+arkea, joka ei kiinnosta viestintäpäällikköä. Kohta 1 karsii sen kahdella
+portilla, kohta 5 asettaa lopuille tason. Kun epäröit, valitse alempi taso tai
+jätä artikkeli pois.
 
 Tee jokaiselle artikkelille:
-1. relevant — false kaikelle arkiselle, myös:
-   - TULOKSET JA SIJOITUKSET AINA, KUN MUKANA EI OLE SUOMALAISIA: tulokset,
-     sijoitukset, voitot, mitalit, sarjatilanteet, lähtöajat, karsinnat,
-     osallistuja- ja tulosluettelot, joukkue- ja maajoukkuevalinnat,
-     yksittäisten pelaajien menestys. Tämä pätee junioreihin, naisiin,
-     amatööreihin, arvokilpailuihin JA MAJOREIHIN. Ulkomaisen pelaajan
-     menestys ei kiinnosta Suomen Golfliittoa, olkoon kilpailu miten arvokas.
-     Nämä ovat POIS:
-       "Sveitsin mestaruuskilpailut kaikille: Anna Olesenille ja Filippo
-        Serralle kansalliset tittelit" — toisen maan mestaruuskilpailu
-       "Clarissa Rattaggi alle 16-vuotiaiden EM-kilpailujen viidenneksi"
-        — EM-sijoitus ilman suomalaisia
-       "Puolalaisille historiallinen tulos European Young Mastersissa"
-       "Ranskan nuorten mestaruuskilpailut: tulevaisuus on turvattu"
-       "Daniela Campillon upea nousu naisten henkilökohtaisissa"
-   - muiden maiden kansalliset mestaruuskilpailut ja niiden mitalistit
-   - KISASEURANTA JA LIVE-TULOKSET AINA, myös oman maan kilpailuista. POIS esim.
-     "Seuraa Sveitsin kansallisia mestaruuskilpailuja live-tuloksista",
-     "Live-tulokset: seuraa sveitsiläispelaajien tuloksia"
-   - tapahtumatiedotteet ja -ennakot, tapahtuman jälkiraportti tai onnistuminen
-   - tavallisten kiertueosakilpailujen uutisointi ja kisakalenterit
-   - yksittäiset turnaukset ja muistokilpailut, myös sekamuotoiset ja klubien
-     omat kilpailut. POIS esim. "Puolan golf-bridge-mestaruuskilpailut
-     järjestetään Binowissa" — sana mestaruus ei tee kilpailusta arvokilpailua.
-   - tavanomaiset valmentaja-, tuomari- ja ohjaajakoulutukset sekä kurssit.
-     POIS esim. "Italian Golfliiton uusi B-luokan apuvalmentajakurssi päättyi"
-   - ilmoittautumiset, vapaaehtoisrekry, talkoo- ja järjestäjähaut. POIS esim.
-     "Vapaaehtoisohjelma greenkeepereille Espanjan avoimiin 2026"
-   - golfkenttä-listaukset ja -esittelyt, golfmatkailujutut
-   - digitaalisen julkaisun/lehden uusi numero, navigaatio, mainokset
-   POIKKEUS (relevant=true): kilpailuun liittyvä uutinen kelpaa vain jos
-   (a) mukana on suomalaisia, (b) kilpailu järjestetään Suomessa, tai
-   (c) uutinen kertoo liittotasoisesta päätöksestä: sääntö- tai
-       formaattimuutoksesta, isäntäpaikkapäätöksestä, kilpailun taloudesta tai
-       uudesta kumppanuudesta (ks. kohta 5).
-   Kohta (c) EI kata kilpailun käytännön pyörittämistä: live-tulospalvelu,
-   kisaseuranta, vapaaehtoisrekry, ilmoittautumiset, aikataulut ja
-   osallistujalistat ovat POIS, vaikka ne liittyisivät arvokilpailuun.
+1. relevant — kaksi porttia. Jos artikkeli osuu jompaankumpaan, relevant=false.
+
+   PORTTI A — KILPAILUSUORITUS. Tulokset, sijoitukset, voitot, mitalit,
+   sarjatilanteet, joukkue- ja maajoukkuevalinnat, lähtöajat, karsinnat,
+   osallistuja- ja tulosluettelot, yksittäisen pelaajan menestys sekä
+   live-tulokset ja kisaseuranta. Koskee junioreita, naisia, amatöörejä,
+   para-golfia, arvokilpailuja JA majoreita. Ulkomaisen pelaajan menestys ei
+   kiinnosta Suomen Golfliittoa, olkoon kilpailu miten arvokas.
+   Portti A EI sulje pois, jos yksikin näistä pätee:
+     (a) mukana on suomalaisia, (b) kilpailu järjestetään Suomessa, tai
+     (c) juttu ei kerro suorituksista vaan liittotasoisesta päätöksestä:
+         säännöistä, formaatista, isäntäpaikasta, taloudesta, kumppanuuksista.
+   Kohta (c) ei kata kilpailun käytännön pyörittämistä: live-tulospalvelu,
+   aikataulut, ilmoittautumiset ja osallistujalistat ovat POIS silloinkin,
+   kun ne liittyvät arvokilpailuun.
+   POIS esim: "Sveitsin mestaruuskilpailut: Olesenille ja Serralle tittelit",
+   "Clarissa Rattaggi viidenneksi U16-EM:ssä", "Puolalaisille historiallinen
+   tulos European Young Mastersissa", "Ranskan nuorten mestaruuskilpailut:
+   tulevaisuus on turvattu", "Ryan Fox voitti Claret Jugin", "Vammaisgolfin
+   EM: Saksa voitti kultaa", "Seuraa mestaruuskilpailuja live-tuloksista"
+
+   PORTTI B — ARKIRUTIINI. Ilmoittautumiset sekä yksittäiset talkoo- ja
+   toimitsijakutsut, aikataulut ja kisakalenterit, tapahtumatiedotteet ja
+   -ennakot, tapahtuman jälkiraportti tai onnistuminen, yksittäiset turnaukset
+   ja muistokilpailut myös sekamuotoiset, klubien omat kilpailut, tavanomaiset
+   valmentaja-, tuomari- ja ohjaajakoulutukset, kenttälistaukset ja
+   -esittelyt, golfmatkailu, lehden uusi numero, navigaatio, mainokset.
+   POIS esim: "Puolan golf-bridge-mestaruuskilpailut järjestetään Binowissa"
+   — sana mestaruus ei tee kilpailusta arvokilpailua —, "Italian Golfliiton
+   uusi B-luokan apuvalmentajakurssi päättyi", "Haemme talkoolaisia
+   ensi viikon kilpailuun"
+
    Jos sama uutinen esiintyy monta kertaa, vain yksi relevant=true, muut false.
 2. title_fi: Käännä otsikko sujuvaksi, toimitukselliseksi suomeksi. ÄLÄ käännä
    sanasta sanaan — kirjoita kuten suomalainen urheilutoimittaja otsikoisi saman
@@ -105,53 +92,65 @@ Tee jokaiselle artikkelille:
 3. summary_fi: 1-2 lauseen tiivistelmä suomeksi otsikon ja ingressin pohjalta.
    Jos ingressiä ei ole, tiivistä otsikon sisältö äläkä keksi yksityiskohtia.
 4. category: yksi näistä: {categories}
-5. priority:
-   - korkea = uutisessa on aitoa substanssia Golfliitolle. Tyyppitapaukset:
-     * Sääntö-, tasoitus- (WHS) tai amatööristatusmuutos, joka koskee pelaajia
-     * Kansainvälinen kasvu- tai harrastajamääräraportti (R&A/USGA-tutkimukset)
-     * Golfin terveys- tai hyvinvointitutkimus
-     * Kestävä kehitys / ympäristöinnovaatio: vedenkäyttö, energia, uusi
-       nurmilajike, biodiversiteetti golfkentillä
-     * Kopioitava digipalvelu, tekoälyratkaisu tai avoin data (esim. AI-pohjainen
-       tasoituslaskenta, uusi maksu-/tulospalvelujärjestelmä)
-     * LIITTOTASOINEN kumppanuus tai rahoitusmalli: liiton oma pää- tai
-       yhteistyökumppani, monivuotinen sopimus, uusi rahoitusratkaisu
-       (esim. "SGF ja Folksam jatkavat kolmivuotisella sopimuksella")
-     * Merkittävän sponsorin VETÄYTYMINEN tai rahoituksen loppuminen: se on
+5. priority — kolme tasoa, joista jokaisella on yksi kysymys. Kysy järjestyksessä
+   ja valitse ensimmäinen, johon vastaus on kyllä. Epäröidessä valitse alempi.
+
+   KORKEA — voiko Golfliitto TEHDÄ tälle jotain: kopioida, soveltaa, varautua
+   tai reagoida? Vaatii konkretiaa: valmis palvelu, tehty päätös, julkaistu
+   tutkimus tai mitattuja tuloksia. Pelkkä aikomus tai visio EI riitä korkeaan.
+     * Sääntö-, tasoitus- (WHS) tai amatööristatusmuutos. Myös sääntötulkinta,
+       joka nousee laajaan keskusteluun: "Schefflerin ilmainen droppi"
+     * Julkaistu tutkimus tai raportti: kasvu- ja harrastajamäärädata
+       (R&A/USGA), golfin terveys- ja hyvinvointivaikutukset
+     * Käytössä oleva kestävän kehityksen innovaatio: vedenkäyttö, energia,
+       nurmilajike, biodiversiteetti
+     * Käytössä oleva kopioitava digipalvelu, tekoälyratkaisu tai avoin data:
+       AI-pohjainen tasoituslaskenta, uusi maksu- tai tulospalvelujärjestelmä
+     * Käyttöön otettu uusi pelimuoto, konsepti tai inkluusiomalli:
+       simulaattoriliiga, matalan kynnyksen malli, "Sveitsi otti G4D-kilpailun
+       mestaruuskilpailujen rinnalle"
+     * Liittotasoinen kumppanuus tai rahoitusmalli: liiton oma pääkumppani,
+       monivuotinen sopimus, "SGF ja Folksam jatkavat kolmivuotisella"
+     * Merkittävän sponsorin VETÄYTYMINEN tai rahoituksen loppuminen. Se on
        markkinasignaali golfin kaupallisesta vetovoimasta ja siksi
-       kiinnostavampi kuin uuden sponsorin tulo (esim. "Kroger ja P&G
-       vetäytyvät LPGA-kilpailun sponsoroinnista Cincinnatissa")
-     * Jäsen-/harrastajakehitysdata syineen ("naisten osuus uusista 41 %")
+       kiinnostavampi kuin uuden sponsorin tulo: "Kroger ja P&G vetäytyvät
+       LPGA-kilpailun sponsoroinnista"
+     * Jäsen- ja harrastajakehitysdata syineen: "naisten osuus uusista 41 %"
      * Liiton talouskriisi, skandaali tai johdon väärinkäytös
-     * Safeguarding / häirinnän vastaiset ohjeet ja toimintamallit
-     * Golfin olympiastatus; suurtapahtuman isäntäpaikkapäätös VAIN jos
-       Pohjoismaissa tai Suomessa (esim. Ryder Cup Pohjolaan) — muualla
-       maailmassa isäntäpaikkapäätös on keskitaso (esim. "Baltusrol isännöi
-       vuoden 2046 U.S. Openia")
-     * Uusi pelimuoto tai konsepti (simulaattoriliiga, matalan kynnyksen malli)
-     * Merkittävä liittotason foorumi/linjaus tai asiantuntijanäkemys
-       viestinnän/digin tulevaisuudesta
-     * MAJORIT JA ARVOKILPAILUT VAIN TAPAHTUMANA, EI TULOKSINA: The Open,
-       Masters, US Open, PGA Championship, naisten majorit (mm. Evian),
-       Solheim Cup, Ryder Cup, olympialaiset sekä EM- ja MM-kilpailut
-       kiinnostavat silloin, kun uutinen kertoo kilpailun järjestämisestä,
-       säännöistä, formaatista, taloudesta tai kumppanuuksista. Pelaajien
-       sijoitukset ja voittajat EIVÄT kiinnosta (relevant=false), ellei
-       mukana ole suomalaisia. "The Open siirtyy Portrushiin 2028" = korkea,
-       "Ryan Fox voitti Claret Jugin" = relevant=false.
-     * KAIKKI KILPAILUT, JOISSA ON SUOMALAISIA MUKANA: suomalaispelaajan
-       osallistuminen, menestys tai karsiutuminen mihin tahansa kilpailuun,
-       sekä Suomessa järjestettävät kilpailut
-   - keskitaso (harvinainen): kiinnostava ilmiö tai trendi ilman suoraa
-     hyötyä, jota ei voi suoraan kopioida (esim. "golfarit siirtyvät
-     kärryihin", urheiluoikeudellinen tapaus). Tähän kuuluu myös yksittäisen
-     ULKOMAISEN TURNAUKSEN nimi- tai pääsponsori (esim. "Buccellati Ladies
-     Italian Openin pääsponsoriksi"): kiinnostava mutta ei hyödynnettävissä,
-     toisin kuin liittotasoinen kumppanuus, joka on korkea.
-   - matala: relevantiksi jäänyt arkijuttu, nimitykset, palkinnot,
-     rutiininomainen mutta lievästi kiinnostava sisältö.
-   EI KOSKAAN korkea: nimitykset, palkinnot, juhlavuodet, tapahtuman
-   järjestäminen/onnistuminen, ohjelman jatkuminen ilman uutta sisältöä.
+     * Safeguarding ja häirinnän vastaiset ohjeet ja toimintamallit
+     * Golfin olympiastatus; suurtapahtuman isäntäpaikkapäätös VAIN
+       Pohjoismaissa tai Suomessa: "Ryder Cup Pohjolaan"
+     * Liittotason foorumi tai linjaus: "EGA:n kestävän golfin foorumi"
+     * Suomalaisen osallistuminen tai menestys missä tahansa kilpailussa,
+       sekä Suomessa järjestettävä kilpailu
+
+   KESKITASO — pitääkö tämä TIETÄÄ, vaikka sitä ei voi soveltaa?
+     * Aikomus, suunnitelma tai asiantuntijavisio ilman päätöstä tai tuloksia:
+       "DGV:n Bünker: digitaalinen golfin oppiminen lisääntyy", "Puolassa
+       suunnitteilla golfaiheinen lastensatu"
+     * Ilmiö tai trendi, jota ei voi suoraan kopioida: "golfarit siirtyvät
+       kärryihin"
+     * Yksittäisen ulkomaisen turnauksen sponsorointi ja kumppanuusaineistot:
+       "Buccellati Ladies Italian Openin pääsponsoriksi", "Final Four 2026 –
+       Kumppanuusopas"
+     * Suurtapahtuman isäntäpaikkapäätös muualla maailmassa: "Baltusrol
+       isännöi vuoden 2046 U.S. Openia"
+     * Inkluusiokärkinen kilpailu-uutinen, jossa ei ole uutta mallia:
+       "Vammaisgolfin EM käynnistyi – inkluusio keskiössä", "Sveitsin
+       mestaruuskilpailut korostivat inklusiivisuutta"
+     * IT-häiriö tai tietoturvatapaus; urheiluoikeudellinen tapaus
+
+   MATALA — hyvä TIEDOKSI, ei vaadi toimenpiteitä.
+     * Nimitykset ja valinnat kv-tehtäviin, palkinnot, juhlavuodet
+     * Pienet käytännön työkalut ja lomakkeet: "sääntökyselylomake
+       kenttäkelpoisuustestiin"
+     * Vapaaehtois- ja koulutusohjelmat: "Vapaaehtoisohjelma greenkeepereille
+       Espanjan avoimiin". Yksittäiset talkookutsut ovat POIS (portti B)
+     * Rutiinikampanjat ja hinnoittelu: "syksyn jäsenmaksuale"
+     * Liiton kannanotto yksittäiseen kv-asiaan
+     * Kevyet henkilö- ja taustajutut: "Course Raterien jalanjäljillä"
+     * Kumppanien luettelointi: "The Openin lähetyskumppanit"
+     * Muu relevantiksi jäänyt arkijuttu
 6. themes: 0-3 kpl näistä, vain jos selvästi osuvat: {themes}
 
 Artikkelit:
@@ -166,49 +165,71 @@ digitaaliset palvelut ja tekoäly, yhteistyöt ja kumppanuudet, sponsorointimall
 kestävä kehitys ja ekologisuus, rahoitusratkaisut, seurakehitys, viestinnän ja
 tapahtumien uudet konseptit, harrastajamäärien kehitys.
 
-Perusperiaate: valtaosa lajiliittojen uutisvirrasta on arkista hötöä, joka ei
-kiinnosta Golfliittoa. Punaisen ansaitsee vain uutinen, jossa on aitoa
-substanssia (ks. kohta 5). Keltainen on harvinainen välitila. Kun epäröit,
-valitse alempi taso tai jätä pois (relevant=false).
+Perusperiaate: valtaosa lajiliittojen uutisvirrasta on kilpailu-uutisointia ja
+seura-arkea, joka ei kiinnosta Golfliittoa. Kohta 1 karsii sen kahdella
+portilla, kohta 5 asettaa lopuille tason. Kun epäröit, valitse alempi taso tai
+jätä artikkeli pois.
 
 Tee jokaiselle artikkelille:
-1. relevant — OLE TIUKKA. false kaikelle arkiselle, myös:
-   - kilpailu- ja ottelutulokset, sarjatilanteet, pelaaja- ja siirtouutiset,
-     joukkue- ja maajoukkuevalinnat, myös Suomen mitalit ja arvokisamenestys
-   - yksittäisen seuran arkitoiminta: pelaajarekry ("seura etsii pelaajia"),
-     harjoitusvuorot, seuran omat leirit, akatemiajoukkueet
-   - tavanomaiset valmentaja-, tuomari- ja ohjaajakoulutukset, valmentajaklinikat
-   - tapahtumien ja leirien ilmoittautumiset, aikataulut, järjestäjähaut
-   - kilpailu- ja tapahtumatiedotteet, -ennakot ja kisaseuranta
-     ("nämä ottelut TV:ssä", "seuraa MM-kilpailua", "suurleiri käyntiin")
-   - tapahtuman jälkiraportti/onnistuminen, navigaatiotekstit, mainokset
+1. relevant — OLE TIUKKA. Kaksi porttia; jos artikkeli osuu jompaankumpaan,
+   relevant=false.
+
+   PORTTI A — KILPAILUSUORITUS. Kilpailu- ja ottelutulokset, sarjatilanteet,
+   pelaaja- ja siirtouutiset, joukkue- ja maajoukkuevalinnat, live-seuranta.
+   Tässä EI ole suomalaispoikkeusta: myös Suomen mitalit ja arvokisamenestys
+   ovat POIS. Golfliittoa kiinnostavat muiden lajien toimintamallit, ei
+   menestys.
+
+   PORTTI B — ARKIRUTIINI. Yksittäisen seuran arkitoiminta (pelaajarekry,
+   harjoitusvuorot, seuran omat leirit, akatemiajoukkueet), tavanomaiset
+   valmentaja-, tuomari- ja ohjaajakoulutukset sekä klinikat, tapahtumien ja
+   leirien ilmoittautumiset, aikataulut ja järjestäjähaut, kilpailu- ja
+   tapahtumatiedotteet ja -ennakot ("nämä ottelut TV:ssä", "suurleiri
+   käyntiin"), tapahtuman jälkiraportti tai onnistuminen, navigaatiotekstit,
+   mainokset.
 2. title_fi: otsikko sellaisenaan (uutiset ovat jo suomeksi), siivoa vain
    mahdollinen lähdejäänne lopusta.
 3. summary_fi: 1-2 lauseen tiivistelmä, joka kertoo MIKSI tämä kiinnostaa
    Golfliittoa (ei lajin fania).
 4. category: yksi näistä: {categories}
-5. priority:
-   - korkea = uutisessa on aitoa substanssia Golfliitolle. Tyyppitapaukset:
+5. priority — kolme tasoa, joista jokaisella on yksi kysymys. Kysy järjestyksessä
+   ja valitse ensimmäinen, johon vastaus on kyllä. Epäröidessä valitse alempi.
+
+   KORKEA — voiko Golfliitto TEHDÄ tälle jotain: kopioida, soveltaa, varautua
+   tai reagoida? Vaatii konkretiaa: tehty päätös, käytössä oleva palvelu tai
+   mitattuja tuloksia. Pelkkä aikomus tai visio EI riitä korkeaan.
      * Lakimuutos tai poliittinen päätös urheilusta: liikuntalaki, seuratuki,
        verotus, OKM:n avustukset, veikkausvarat, Olympiakomitean linjaus
      * Viranomais- tai edunvalvontavoitto, jota Golfliitto voisi tavoitella:
        "pesäpalloilijoille ikäpoikkeuslupa ajokorttiin"
-     * Kopioitava digipalvelu, tekoälyratkaisu tai avoin data: yhteinen
-       jäsenrekisteri, avoin datarajapinta, tekoälyavusteinen videoanalyysi
-     * Jäsen-/harrastajahankintamalli, josta on TULOKSIA: "sovellus toi
-       10 000 uutta harrastajaa", "kokeile kuukausi toi 4 000 lisenssipelaajaa"
-     * Merkittävä kaupallinen kumppanuus: "Jääkiekkoliitto ja Kesko 2 M€",
-       "NOCCO Leijonien pääyhteistyökumppaniksi"
+     * Käytössä oleva kopioitava digipalvelu, tekoälyratkaisu tai avoin data:
+       yhteinen jäsenrekisteri, avoin datarajapinta, videoanalyysi
+     * Jäsen- tai harrastajahankintamalli, josta on TULOKSIA: "sovellus toi
+       10 000 uutta harrastajaa", "Hippo Street Tennis kokosi 10 000 lasta"
+     * Merkittävä kaupallinen kumppanuus tai sen menetys: "NOCCO Leijonien
+       pääyhteistyökumppaniksi", "Kesko 2 M€", pääkumppanin vetäytyminen
+     * Kohdennettu rahoituspäätös: "yli miljoona euroa nuorten tukemiseen"
      * Liiton talouskriisi tai konkurssiuhka
-     * Safeguarding / häirinnän vastaiset palvelut ja ohjelmat
-       ("Et ole yksin -palvelun laajennus")
+     * Safeguarding ja häirinnän vastaiset palvelut: "Et ole yksin -laajennus"
      * Koko toimialaa koskeva huolidata: "vapaaehtoisten määrä romahti 20 %"
-   - keskitaso (harvinainen): merkittävä digitaalinen häiriö tai tietoturvatapaus
-     (liiton verkkosivut kaatuivat — oppi varautumiseen), urheiluoikeudellinen
-     tapaus (dopingjuttu käräjillä), kiinnostava ilmiö ilman suoraa hyötyä.
-   - matala: nimitykset (myös kv-luottamustehtävät), palkinnot, juhlavuodet,
-     relevantiksi jäänyt arkijuttu, muu hyvä tietää.
-   Jos epäröit kahden tason välillä, valitse AINA alempi.
+     * Lajin asemaa muuttava kv-päätös: "yhdistetty putoaa olympiaohjelmasta"
+
+   KESKITASO — pitääkö tämä TIETÄÄ, vaikka sitä ei voi soveltaa?
+     * Aikomus, suunnitelma tai asiantuntijavisio ilman päätöstä tai tuloksia
+     * Digitaalinen häiriö tai tietoturvatapaus, josta saa opin varautumiseen:
+       "liiton verkkosivuilla ongelmia"
+     * Urheiluoikeudellinen tapaus: dopingjuttu käräjillä
+     * Ilmiö tai trendi, jota ei voi suoraan kopioida
+     * Inkluusiokärkinen uutinen, jossa ei ole uutta mallia
+
+   MATALA — hyvä TIEDOKSI, ei vaadi toimenpiteitä.
+     * Nimitykset ja valinnat kv-luottamustehtäviin, palkinnot, juhlavuodet
+     * Pienet käytännön työkalut, lomakkeet ja käyttökoulutukset
+     * Vapaaehtois- ja koulutusohjelmat; yksittäiset talkookutsut POIS (portti B)
+     * Rutiinikampanjat ja hinnoittelu: "syksyn seurajäsenmaksuale"
+     * Liiton kannanotto yksittäiseen kv-asiaan: "kanta Infantinon jatkokauteen"
+     * Tapahtuman isäntäpaikka tai brändiuudistus: "Kalevan kisat Porissa 2027"
+     * Muu relevantiksi jäänyt arkijuttu
 6. themes: 0-3 kpl näistä, vain jos selvästi osuvat: {themes}
 
 Artikkelit:

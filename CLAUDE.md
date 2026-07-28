@@ -38,66 +38,91 @@ uudelleenanalyysi merkitsee `stale` (näkyy yhä) eikä `new` (katoaisi).
 
 ## Priorisointisäännöt (src/analyze.py)
 
-Perusperiaate: **substanssi = punainen, arki = pois tai vihreä.** Keltainen on
-harvinainen välitila. Epäröidessä valitse alempi taso tai jätä pois.
+Arviointi on kaksivaiheinen, eikä vaiheita saa sekoittaa: **kohta 1 karsii**
+kahdella portilla, **kohta 5 asettaa lopuille tason** kolmella kysymyksellä.
+Jokainen sääntö kuuluu täsmälleen yhteen paikkaan — päällekkäisyydet sekoittavat
+mallin. Epäröidessä valitse alempi taso tai jätä pois.
 
-### Punainen (korkea) — aitoa substanssia
+### Vaihe 1: kaksi porttia (relevant=false)
 
-Golfliitot: sääntö-/tasoitus- (WHS) /amatööristatusmuutokset · R&A/USGA-tutkimukset
-ja kasvuraportit · golfin terveystutkimukset · kestävän kehityksen innovaatiot
-(vedenkäyttö, energia, nurmilajikkeet, biodiversiteetti) · kopioitavat
-digipalvelut ja tekoälyratkaisut · **liittotasoiset** kumppanuudet ja
-rahoitusmallit · **merkittävän sponsorin vetäytyminen** (markkinasignaali, ja
-siksi kiinnostavampi kuin uuden sponsorin tulo) ·
-jäsenkehitysdata syineen · liiton talouskriisi tai skandaali · safeguarding ·
-olympiastatus · suurtapahtuman isäntäpaikka **vain Pohjoismaissa** · uudet
-pelimuodot ja konseptit · **majorit ja arvokilpailut vain tapahtumana** —
-järjestäminen, säännöt, formaatti, talous, kumppanuudet (ei sijoituksia) ·
-**kaikki kilpailut joissa suomalaisia mukana** (osallistuminen, menestys,
-karsiutuminen) ja Suomessa järjestettävät kilpailut.
+**Portti A — kilpailusuoritus.** Tulokset, sijoitukset, voitot, mitalit,
+sarjatilanteet, joukkuevalinnat, lähtöajat, karsinnat, osallistujalistat,
+yksittäisen pelaajan menestys, live-tulokset ja kisaseuranta. Koskee junioreita,
+naisia, amatöörejä, para-golfia, arvokilpailuja **ja majoreita**. Ulkomaisen
+pelaajan menestys ei kiinnosta, olkoon kilpailu miten arvokas.
+
+Portti A ei sulje pois, jos: **(a)** mukana on suomalaisia, **(b)** kilpailu on
+Suomessa, tai **(c)** juttu kertoo liittotasoisesta päätöksestä — säännöistä,
+formaatista, isäntäpaikasta, taloudesta, kumppanuuksista. Kohta (c) **ei** kata
+kilpailun käytännön pyörittämistä (live-tulospalvelu, aikataulut,
+ilmoittautumiset, osallistujalistat) edes arvokilpailussa — tämä rajaus on
+pakollinen, koska ilman sitä malli päästi läpi live-tulosseurannan punaisena.
+
+**Portti B — arkirutiini.** Ilmoittautumiset ja yksittäiset talkookutsut,
+aikataulut, tapahtumatiedotteet ja -ennakot, jälkiraportit, yksittäiset
+turnaukset ja muistokilpailut (myös golf-bridge), klubien omat kilpailut,
+tavanomaiset valmentaja- ja tuomarikoulutukset, kenttälistaukset, golfmatkailu,
+lehden uusi numero, navigaatio, mainokset.
+
+Lajiliitto-välilehdellä portti A on tiukempi: **suomalaispoikkeusta ei ole**,
+myös Suomen mitalit karsiutuvat. Golfliittoa kiinnostavat muiden lajien
+toimintamallit, ei menestys.
+
+### Vaihe 2: kolme tasoa, yksi kysymys kullekin
+
+**Punainen — voiko Golfliitto tehdä tälle jotain?** Kopioida, soveltaa, varautua
+tai reagoida. **Vaatii konkretiaa:** valmis palvelu, tehty päätös, julkaistu
+tutkimus tai mitattuja tuloksia. Pelkkä aikomus tai visio ei riitä.
+
+Golfliitot: sääntö-/tasoitus- (WHS) /amatööristatusmuutokset ja laajaan
+keskusteluun nousevat sääntötulkinnat · julkaistut tutkimukset ja kasvuraportit
+(R&A/USGA, terveysvaikutukset) · käytössä olevat kestävän kehityksen innovaatiot
+· käytössä olevat kopioitavat digipalvelut ja tekoälyratkaisut · käyttöön otetut
+uudet pelimuodot, konseptit ja **inkluusiomallit** · **liittotasoiset**
+kumppanuudet ja rahoitusmallit · **merkittävän sponsorin vetäytyminen**
+(markkinasignaali, ja siksi kiinnostavampi kuin uuden sponsorin tulo) ·
+jäsenkehitysdata syineen · talouskriisi tai skandaali · safeguarding ·
+olympiastatus · suurtapahtuman isäntäpaikka **vain Pohjoismaissa** ·
+liittotason foorumit ja linjaukset · suomalaisten osallistuminen ja menestys.
 
 Lajiliitot: lakimuutokset ja seuratuki · OKM/veikkausvarat/Olympiakomitean
-linjaukset · edunvalvontavoitot (esim. ajokortin ikäpoikkeus) · yhteiset
-digijärjestelmät ja avoin data · harrastajahankintamallit **joista on tuloksia** ·
-isot kaupalliset kumppanuudet · talouskriisit · häirinnän vastaiset palvelut ·
-toimialan huolidata (vapaaehtoisten romahdus).
+linjaukset · edunvalvontavoitot (ajokortin ikäpoikkeus) · käytössä olevat
+digijärjestelmät ja avoin data · harrastajahankintamallit **joista on tuloksia**
+· isot kaupalliset kumppanuudet ja niiden menetys · kohdennetut
+rahoituspäätökset · talouskriisit · häirinnän vastaiset palvelut · toimialan
+huolidata · lajin asemaa muuttavat kv-päätökset (olympiaohjelma).
 
-### Keltainen (keskitaso) — harvinainen
+**Keltainen — pitääkö tämä tietää, vaikka sitä ei voi soveltaa?** Ei enää
+harvinainen välitila, vaan oma selkeä luokkansa.
 
-Ilmiöjutut ilman suoraa hyötyä · IT-häiriöt ja tietoturvatapaukset ·
-urheiluoikeudelliset tapaukset · isäntäpaikkapäätökset muualla maailmassa ·
-**yksittäisen ulkomaisen turnauksen nimisponsori** (vrt. liittotasoinen
-kumppanuus, joka on punainen).
+Aikomus, suunnitelma tai asiantuntijavisio **ilman päätöstä tai tuloksia** ·
+ilmiöt ja trendit · **yksittäisen ulkomaisen turnauksen** sponsorointi ja
+kumppanuusaineistot (vrt. liittotasoinen kumppanuus = punainen) ·
+isäntäpaikkapäätökset muualla maailmassa · **inkluusiokärkinen kilpailu-uutinen,
+jossa ei ole uutta mallia** · IT-häiriöt ja tietoturvatapaukset ·
+urheiluoikeudelliset tapaukset.
 
-### Vihreä (matala)
+**Vihreä — hyvä tiedoksi, ei vaadi toimenpiteitä.**
 
-Nimitykset, palkinnot, juhlavuodet, relevantiksi jääneet arkijutut,
-Suomi-kytköksiset kilpauutiset.
+Nimitykset ja kv-luottamustehtävät, palkinnot, juhlavuodet · pienet käytännön
+työkalut ja lomakkeet · **vapaaehtois- ja koulutusohjelmat** (yksittäiset
+talkookutsut sen sijaan karsiutuvat portissa B) · rutiinikampanjat ja
+hinnoittelu · liiton kannanotto yksittäiseen kv-asiaan · kevyet henkilö- ja
+taustajutut · kumppanien luettelointi · muu relevantiksi jäänyt arkijuttu.
 
-### Pois kokonaan (relevant=false)
+### Inkluusio kulkee kaikkien kolmen tason läpi
 
-**Ulkomaisten tulokset ja sijoitukset aina** — myös majoreista, arvokilpailuista,
-EM/MM-kisoista ja muiden maiden mestaruuskilpailuista. Ulkomaisen pelaajan
-menestys ei kiinnosta, olkoon kilpailu miten arvokas. Lisäksi: sarjatilanteet,
-lähtöajat, karsinnat, osallistujalistat, joukkuevalinnat · tapahtumatiedotteet,
--ennakot ja kisaseuranta · tavallisten kiertueosakilpailujen uutisointi ·
-yksittäiset turnaukset ja muistokilpailut (myös golf-bridge yms.) · seurojen
-pelaajarekry, leirit, harjoitusvuorot · tavanomaiset valmentaja- ja
-tuomarikoulutukset · ilmoittautumiset ja järjestäjähaut · kenttälistaukset ja
-golfmatkailu · lehden uusi numero · navigaatio ja mainokset.
-
-**Poikkeus kilpailuihin** — uutinen kelpaa vain jos (a) mukana on suomalaisia,
-(b) kilpailu järjestetään Suomessa, tai (c) uutinen ei kerro tuloksista vaan
-kilpailun järjestämisestä, säännöistä, isäntäpaikasta, taloudesta tai
-kumppanuuksista. Siis "The Open siirtyy Portrushiin" on punainen, "Ryan Fox
-voitti Claret Jugin" ei tule raporttiin lainkaan.
-
-Lajiliitto-välilehdellä kaikki kilpailu-uutisointi karsiutuu, myös Suomen
-mitalit — Golfliittoa kiinnostaa muiden lajien toimintamallit, ei menestys.
+Tämä on setin hankalin raja, joten se on kirjattu erikseen: käyttöön otettu
+**inkluusiomalli on punainen** ("Sveitsi otti G4D-kilpailun mestaruuskilpailujen
+rinnalle"), **inkluusiokärkinen kilpailu-uutinen keltainen** ("Vammaisgolfin EM
+käynnistyi – inkluusio keskiössä"), **para-golfin tulokset pois** kuten muutkin
+ulkomaiset tulokset.
 
 **Kalibrointitapa:** kun käyttäjä sanoo "tämä oli väärässä laatikossa", lisää
 kyseinen otsikko esimerkkinä oikean tason listaan promptissa. Poista samalla
-ristiriitaiset vanhat säännöt — päällekkäisyydet sekoittavat mallia.
+ristiriitaiset vanhat säännöt. Älä kirjoita samaa sääntöä kahteen tasoon —
+jos raja on aito, kirjoita se **vastakkainasetteluna** ("liittotasoinen =
+punainen, turnaustason = keltainen"), ei kahtena erillisenä sääntönä.
 
 ## Arkkitehtuuri
 
