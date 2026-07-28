@@ -82,6 +82,17 @@ def _art(url="https://x.fi/a", title="Testiotsikko pitkä kyllä"):
             "url": url, "published": published, "summary": "Ingressi"}
 
 
+def test_repair_link():
+    from src.fetch import repair_link
+    # NGF:n syöte: skeema ilman kaksoispistettä -> feedparser liimasi base-URLin
+    assert (repair_link("http://www.ngf.nlhttps//www.ngf.nl/nieuws/juttu")
+            == "https://www.ngf.nl/nieuws/juttu")
+    # Kunnolliset URLit eivät saa muuttua
+    for url in ("https://x.fi/a", "http://y.fi/b?q=1", "https://golf.fi/uutiset/x"):
+        assert repair_link(url) == url
+    assert repair_link("") == ""
+
+
 def test_insert_dedup(conn):
     assert store.insert_new(conn, [_art()]) == 1
     assert store.insert_new(conn, [_art()]) == 0          # sama url -> ei duplikaattia

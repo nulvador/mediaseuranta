@@ -278,9 +278,12 @@ sources:
     tab: golfliitot
     country: Hollanti
     language: nl
-    # Ei RSS:ää. Uutislistaus /over-de-ngf/nieuws latautuu JS:llä, eikä sivustolla
-    # näy päivämääriä missään — vain kuukausi artikkelin URL:ssa (/2026/jul/),
-    # mikä ei riitä 5 päivän ikkunaan. -> Google News on ainoa reitti.
+    # RSS löytyi lopulta polusta /nieuws/feed (ei /feed eikä /rss). Syöte antaa
+    # oikeat päivämäärät, mutta sen <link> on rikki: skeema on ilman
+    # kaksoispistettä ("https//www.ngf.nl/…"), joten feedparser liimaa base-URLin
+    # eteen. fetch.repair_link korjaa tämän — tarkistettu, että kaikki linkit
+    # avautuvat. Google News jää varareitiksi.
+    rss: https://www.ngf.nl/nieuws/feed
     google_news: ngf.nl
 
   - id: rfeg_spain

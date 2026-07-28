@@ -23,6 +23,27 @@ log = logging.getLogger(__name__)
 MIN_TITLE_LEN = 12
 _GN_SUFFIX = re.compile(r"\s+[-–|]\s+[^-–|]{2,40}$")
 
+# Skeema ilman kaksoispistettä keskellä linkkiä: "…nlhttps//www…"
+_BROKEN_SCHEME = re.compile(r"https?//")
+
+
+def repair_link(link: str) -> str:
+    """Korjaa syötteen rikkinäinen absoluuttinen linkki.
+
+    Osa julkaisujärjestelmistä kirjoittaa <link>-kenttään skeeman ilman
+    kaksoispistettä ("https//www.ngf.nl/uutinen"). feedparser tulkitsee sen
+    silloin relatiiviseksi ja liimaa base-URLin eteen, jolloin syntyy
+    "http://www.ngf.nlhttps//www.ngf.nl/uutinen" — linkki näyttää kelvolliselta
+    mutta ei avaudu. Otetaan viimeinen skeema ja palautetaan kaksoispiste.
+
+    Kunnollinen URL ei osu tähän: "https://x.fi" ei täsmää, koska skeeman ja
+    kautusviivojen välissä on kaksoispiste.
+    """
+    hits = list(_BROKEN_SCHEME.finditer(link))
+    if not hits:
+        return link
+    return link[hits[-1].start():].replace("//", "://", 1)
+
 # Kuukaudennimet lähteiden kielillä. dateutil tuntee vain englannin, ja fuzzy=True
 # täyttää tunnistamattoman kuukauden NYKYHETKESTÄ: "5. juli 2026" tulkittiin
 # päiväksi 2026-05-27. Väärä tuore päivämäärä nostaa vanhan jutun raporttiin,
@@ -177,13 +198,13 @@ def fetch_rss(source: Source, url: str, since: datetime.date,
     if resp is None:
         return [], {"total": -1}
     feed = feedparser.parse(resp.content)
-    diag = {"total": len(feed.entries), "domain": 0, "old": 0, "bad": 0}
+    diag = {"total": len(feed.entries), "domain": 0, "old": 0, "bad": 0, "nodate": 0}
     articles = []
     # Selaa syöte laajasti: Google News ei aina järjestä tuloksia päivämäärän
     # mukaan, joten tuoreet voivat olla vasta listan loppupuolella.
     for entry in feed.entries[:120]:
         title = clean_title(entry.get("title", ""), google_news=google_news)
-        link = (entry.get("link") or "").strip()
+        link = repair_link((entry.get("link") or "").strip())
         if not title or len(title) < MIN_TITLE_LEN or not link:
             diag["bad"] += 1
             continue
@@ -207,7 +228,14 @@ def fetch_rss(source: Source, url: str, since: datetime.date,
                 break
         if date_obj is None:
             date_obj = parse_date(entry.get("published") or entry.get("updated") or "")
-        if date_obj is None or date_obj < since:
+        # Päivämäärätön merkintä hylätään kuten ennenkin, mutta se EI ole sama
+        # asia kuin "liian vanha": jos koko syöte on päivämäärätön, syöte on
+        # rikki eikä lähde vain julkaise harvoin. Sekoitus näytti lokissa
+        # luonnolliselta ja olisi peittänyt aidon vian.
+        if date_obj is None:
+            diag["nodate"] += 1
+            continue
+        if date_obj < since:
             diag["old"] += 1
             continue
 
@@ -349,6 +377,11 @@ def fetch_source(source: Source, since: datetime.date) -> tuple[list[dict], dict
                 reasons.append(f"{diag['domain']} muun median juttua (ei tätä lähdettä)")
             if diag.get("old"):
                 reasons.append(f"{diag['old']} liian vanhaa")
+            if diag.get("nodate"):
+                nodate = diag["nodate"]
+                # Koko syöte ilman päivämääriä = rikki, ei harvoin julkaiseva
+                suffix = " — SYÖTE RIKKI" if nodate == total else ""
+                reasons.append(f"{nodate} ilman päivämäärää{suffix}")
             if diag.get("bad"):
                 reasons.append(f"{diag['bad']} puutteellista")
             notes.append(f"{name}: {total} merkintää — " + ", ".join(reasons or ["ei osumia"]))
