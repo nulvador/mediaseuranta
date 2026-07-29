@@ -412,6 +412,16 @@ sources:
     # Vain R&A:n oma sivusto. Ei RSS:ää, ja /news/all-news renderöityy JS:llä
     # ilman päivämääriä (tarkistettu 7/2026) -> HTML-reitti ei ole mahdollinen.
     # Google News indeksoi randa.org:n, joten lähde herää kun R&A julkaisee.
+    # Uutislistaus /news/all-news on Next.js, jonka __NEXT_DATA__ sisältää vain
+    # hero-artikkelin — loput haetaan client-sidena. Sivuston API-host
+    # (betaranda2021api.randa.org) tarjoaa vain scoring-, user- ja
+    # rulesAcademy-endpointteja, ei uutislistausta. /news ja /en/news ohjautuvat
+    # sorry.randa.org/404.html. Jäljelle jää sitemap: 998 /articles/-osoitetta
+    # lastmodilla, ja otsikko + ingressi + kuva tulevat og-metatiedoista.
+    # Google News jää varareitiksi.
+    sitemap:
+      url: https://www.randa.org/sitemap.xml
+      include: /articles/
     google_news: randa.org
 
   - id: theopen

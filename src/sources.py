@@ -37,6 +37,7 @@ class Source:
     language: str
     rss: Optional[str] = None
     json_api: dict = field(default_factory=dict)   # JS-sivustojen oma JSON-rajapinta
+    sitemap: dict = field(default_factory=dict)    # viimeinen keino: sitemap + og-metatiedot
     html_url: Optional[str] = None
     html_selectors: dict = field(default_factory=dict)
     google_news: Optional[str] = None          # domain -> site:-haku
@@ -74,6 +75,7 @@ def load_sources(path=None) -> tuple[list[Source], dict]:
             language=str(item.get("language", "en")),
             rss=item.get("rss"),
             json_api=item.get("json_api") or {},
+            sitemap=item.get("sitemap") or {},
             html_url=html.get("url"),
             html_selectors=selectors,
             google_news=item.get("google_news"),

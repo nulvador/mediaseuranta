@@ -233,14 +233,14 @@ def fetch_rss(source: Source, url: str, since: datetime.date,
                 break
         if date_obj is None:
             date_obj = parse_date(entry.get("published") or entry.get("updated") or "")
-        # Päivämäärätön merkintä hylätään kuten ennenkin, mutta se EI ole sama
-        # asia kuin "liian vanha": jos koko syöte on päivämäärätön, syöte on
-        # rikki eikä lähde vain julkaise harvoin. Sekoitus näytti lokissa
-        # luonnolliselta ja olisi peittänyt aidon vian.
+        # Päivämäärätön merkintä SÄILYTETÄÄN ja päivätään havaitsemispäivällä:
+        # store jättää published-kentän tyhjäksi ja _EFF_DATE käyttää fetched_at.
+        # Sama sääntö kaikilla reiteillä (HTML toimi näin jo ennen). Laskuri
+        # pidetään, koska kokonaan päivämäärätön syöte on silti epäilyttävä ja
+        # siitä varoitetaan lokissa erikseen.
         if date_obj is None:
             diag["nodate"] += 1
-            continue
-        if date_obj < since:
+        elif date_obj < since:
             diag["old"] += 1
             continue
 
@@ -249,7 +249,8 @@ def fetch_rss(source: Source, url: str, since: datetime.date,
             summary = BeautifulSoup(entry["summary"], "html.parser").get_text(" ", strip=True)
 
         image = "" if google_news else _entry_image(entry)
-        articles.append(_article(source, title, link, date_obj.isoformat(), summary, image))
+        date_str = date_obj.isoformat() if date_obj else ""
+        articles.append(_article(source, title, link, date_str, summary, image))
         if len(articles) >= config.MAX_PER_SOURCE:
             break
     return articles, diag
@@ -329,11 +330,11 @@ def fetch_json_api(source: Source, since: datetime.date) -> tuple[list[dict], di
             diag["bad"] += 1
             continue
 
+        # Päivämäärätön säilytetään ja päivätään havaitsemispäivällä (ks. fetch_rss)
         date_obj = parse_date(str(it.get(f_date) or ""))
         if date_obj is None:
             diag["nodate"] += 1
-            continue
-        if date_obj < since:
+        elif date_obj < since:
             diag["old"] += 1
             continue
 
@@ -344,9 +345,90 @@ def fetch_json_api(source: Source, since: datetime.date) -> tuple[list[dict], di
         if f_image and it.get(f_image):
             image = urljoin(url, str(it[f_image]))
 
-        articles.append(_article(source, title, link, date_obj.isoformat(), summary, image))
+        date_str = date_obj.isoformat() if date_obj else ""
+        articles.append(_article(source, title, link, date_str, summary, image))
         if len(articles) >= config.MAX_PER_SOURCE:
             break
+    return articles, diag
+
+
+# ---------------------------------------------------------------- sitemap
+_SITEMAP_URL_RE = re.compile(
+    r"<url>\s*<loc>(.*?)</loc>\s*(?:<lastmod>(.*?)</lastmod>)?", re.S)
+
+
+def _meta(soup, *names: str) -> str:
+    """Poimi ensimmäinen löytyvä og:/name-metatieto."""
+    for n in names:
+        el = soup.find("meta", attrs={"property": n}) or soup.find("meta", attrs={"name": n})
+        if el is not None and el.get("content"):
+            return el["content"].strip()
+    return ""
+
+
+def fetch_sitemap(source: Source, since: datetime.date) -> tuple[list[dict], dict]:
+    """Hae artikkelit sitemapista ja täydennä otsikko artikkelisivun metatiedoista.
+
+    Viimeinen keino sivustolle, jolla uutislistaus on JS-sovellus eikä
+    listausrajapintaa löydy (R&A: Next.js, jonka __NEXT_DATA__ sisältää vain
+    hero-artikkelin). Sitemap antaa osoitteet ja lastmodin, artikkelisivun
+    og-metatiedot otsikon, ingressin ja kuvan.
+
+    HUOM päivämäärä: lastmod on sivun muokkausaika, ei julkaisuaika. R&A:lla ne
+    vastaavat toisiaan päivän tarkkuudella (tarkistettu 7/2026), mutta jos lähde
+    muokkaa vanhoja sivuja, ne nousevat tuoreina. Siksi ikkuna rajataan
+    lastmodilla ENNEN artikkelisivujen hakua — muuten haettaisiin satoja sivuja.
+
+    Konfiguraatio: url, include (polun osa), exclude (valinnainen).
+    """
+    cfg = source.sitemap
+    url = cfg.get("url")
+    if not url:
+        return [], {"total": 0}
+    resp = _http_get(url)
+    if resp is None:
+        return [], {"total": -1}
+
+    include = cfg.get("include") or ""
+    exclude = cfg.get("exclude") or ""
+    entries = []
+    for loc, lastmod in _SITEMAP_URL_RE.findall(resp.content.decode("utf-8", "ignore")):
+        loc = loc.strip()
+        if include and include not in loc:
+            continue
+        if exclude and exclude in loc:
+            continue
+        entries.append((loc, parse_date((lastmod or "").strip())))
+
+    diag = {"total": len(entries), "domain": 0, "old": 0, "bad": 0, "nodate": 0}
+    fresh = []
+    for loc, d in entries:
+        if d is None:
+            diag["nodate"] += 1          # päivätään havaitsemishetkellä
+        elif d < since:
+            diag["old"] += 1
+            continue
+        fresh.append((loc, d))
+    # Tuoreimmat ensin, jotta kiintiö menee uusimpiin jos raja tulee vastaan
+    fresh.sort(key=lambda t: (t[1] is not None, t[1]), reverse=True)
+
+    articles = []
+    for loc, d in fresh[:config.MAX_PER_SOURCE]:
+        page = _http_get(loc)
+        if page is None:
+            diag["bad"] += 1
+            continue
+        page.encoding = page.apparent_encoding or "utf-8"
+        soup = BeautifulSoup(page.text, "lxml")
+        title = clean_title(_meta(soup, "og:title", "twitter:title")
+                            or (soup.title.get_text(" ", strip=True) if soup.title else ""))
+        if len(title) < MIN_TITLE_LEN:
+            diag["bad"] += 1
+            continue
+        summary = _meta(soup, "og:description", "description")
+        image = _meta(soup, "og:image")
+        articles.append(_article(source, title, loc,
+                                 d.isoformat() if d else "", summary, image))
     return articles, diag
 
 
@@ -483,6 +565,8 @@ def fetch_source(source: Source, since: datetime.date) -> tuple[list[dict], dict
         methods.append(("rss", lambda: fetch_rss(source, source.rss, since)))
     if source.json_api:
         methods.append(("json_api", lambda: fetch_json_api(source, since)))
+    if source.sitemap:
+        methods.append(("sitemap", lambda: fetch_sitemap(source, since)))
     if source.html_url:
         methods.append(("html", lambda: fetch_html(source, since)))
     if source.google_news_rss:
@@ -499,6 +583,13 @@ def fetch_source(source: Source, since: datetime.date) -> tuple[list[dict], dict
             continue
         if articles:
             health.update(method=name, count=len(articles))
+            # Päivämäärätön juttu päivätään havaitsemishetkellä, joten vanha juttu
+            # näyttää tuoreelta. Se ei estä ajoa, mutta lähde kannattaa korjata.
+            nodate = sum(1 for a in articles if not a.get("published"))
+            if nodate:
+                log.warning("%s (%s): %d/%d artikkelia ilman päivämäärää — "
+                            "päivätään havaitsemispäivällä, tarkista selektori",
+                            source.id, name, nodate, len(articles))
             return articles, health
 
         total = diag.get("total", 0)

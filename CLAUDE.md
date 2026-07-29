@@ -239,7 +239,8 @@ punainen, turnaustason = keltainen"), ei kahtena erillisenä sääntönä.
 ## Arkkitehtuuri
 
 ```
-sources.yaml       lähteet (RSS → HTML → Google News, ensimmäinen osuma voittaa)
+sources.yaml       lähteet (RSS → json_api → sitemap → HTML → Google News,
+                   ensimmäinen osuma voittaa)
 src/config.py      polut, .env, vakiot
 src/sources.py     YAML-lataus, Google News -lokaalit per kieli
 src/fetch.py       rinnakkainen keruu, 15 s timeout, alidomain-suodatus
@@ -263,9 +264,29 @@ deploy/            launchd-ajastus (ti + pe klo 10:15)
 - Suora RSS on aina paras: oikeat päivämäärät ja linkit. Google News antaa
   joskus vanhalle jutulle tuoreen päiväyksen. Tarkista silti, että syötteessä on
   `<link>`: esim. swissgolf.ch/rss antaa vain guidin, joten artikkeliin ei pääse.
-- **Tarkista aina HTML-lähteen päivämääräselektori.** Päivämäärätön artikkeli
-  tulkitaan tuoreeksi, joten osumaton selektori nostaa vanhat jutut raporttiin
-  ikuisesti tuoreina. Näin kävi Islannille, Italialle ja Tanskalle (7/2026).
+- **Päivämäärätön artikkeli tallennetaan havaitsemispäivällä.** Sääntö on sama
+  kaikilla reiteillä: jos päivää ei löydy, `published` jää tyhjäksi ja
+  `_EFF_DATE` käyttää `fetched_at`-päivää. Juttua ei siis koskaan hylätä
+  päivämäärän puutteen takia. Hinta on että vanha juttu näyttää tuoreelta, joten
+  `fetch_source` **varoittaa lokissa** jos lähde tuottaa päivämäärättömiä
+  artikkeleita — tarkista silloin selektori. Näin kävi Islannille, Italialle ja
+  Tanskalle (7/2026).
+- **Tarkista aina HTML-lähteen päivämääräselektori.** Oletuslistan selektorit
+  eivät osu kaikkialle: EGA:lla luokka on `news-page-item__small-date`, ei
+  `date`.
+- **`json_api` — sivuston oma rajapinta.** Kun uutislistaus on JS-sovellus,
+  se hakee datansa rajapinnasta jota voi kutsua suoraan. Näin toimivat England
+  Golf ja Golf Ireland (sama alusta, `POST /api/news/GetNewsArticles`, erona
+  `clubWebsiteId`). Rajapinta antaa myös oikean ingressin, mikä parantaa
+  arvioita. Nämä ovat dokumentoimattomia rajapintoja → jätä Google News
+  varareitiksi.
+- **`sitemap` — viimeinen keino.** Kun listausrajapintaa ei löydy (R&A: Next.js,
+  jonka `__NEXT_DATA__` sisältää vain hero-artikkelin), sitemap antaa osoitteet
+  ja `lastmod`-päivän, ja artikkelisivun og-metatiedot otsikon, ingressin ja
+  kuvan. Huomaa: `lastmod` on muokkausaika, ei julkaisuaika — R&A:lla ne
+  vastaavat päivän tarkkuudella, mutta jos lähde muokkaa vanhoja sivuja, ne
+  nousevat tuoreina. Ikkuna rajataan `lastmod`illa ennen artikkelisivujen
+  hakua, ettei haeta satoja sivuja.
 - Templaattisivustot (Knockout, Vue) näyttävät toimivilta: kortteja löytyy, mutta
   ne ovat tyhjiä runkoja, joissa linkki on `#!` ja otsikoksi valikoituu CMS:n
   painike ("Edit Article"). `fetch.py` hylkää nyt listaussivulle itseensä

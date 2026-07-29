@@ -71,6 +71,11 @@ Tee jokaiselle artikkelille:
    peruutus, siirto tai sään takia lyhentäminen ovat POIS silloinkin, kun ne
    liittyvät arvokilpailuun ja kun tiedote tulee liitolta. Kohta (c) tarkoittaa
    pysyvää linjausta, ei yhden kilpailun järjestelyuutista.
+   Isäntäpaikka kuuluu kohtaan (c) vain SUURTAPAHTUMALTA: Ryder Cup, major,
+   arvokilpailu. Kauden tavanomaisen mestaruuskilpailun pelipaikan ilmoitus on
+   POIS, myös junioreiden: "Holywood isännöi alle 14- ja 16-vuotiaiden poikien
+   mestaruuskilpailuja" on POIS, koska kyse on kauden kilpailukalenterista eikä
+   liiton linjauksesta.
    Kilpailun TEEMA ei kumoa porttia A. Jos jutussa on tuloksia, voittajia tai
    mestareita, se on POIS vaikka otsikko korostaisi inklusiivisuutta,
    kestävyyttä tai naisten asemaa: "Sveitsin mestaruuskilpailut korostivat
