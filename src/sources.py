@@ -36,6 +36,7 @@ class Source:
     country: str
     language: str
     rss: Optional[str] = None
+    json_api: dict = field(default_factory=dict)   # JS-sivustojen oma JSON-rajapinta
     html_url: Optional[str] = None
     html_selectors: dict = field(default_factory=dict)
     google_news: Optional[str] = None          # domain -> site:-haku
@@ -72,6 +73,7 @@ def load_sources(path=None) -> tuple[list[Source], dict]:
             country=item.get("country", ""),
             language=str(item.get("language", "en")),
             rss=item.get("rss"),
+            json_api=item.get("json_api") or {},
             html_url=html.get("url"),
             html_selectors=selectors,
             google_news=item.get("google_news"),

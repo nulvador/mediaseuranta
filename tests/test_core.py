@@ -82,6 +82,22 @@ def _art(url="https://x.fi/a", title="Testiotsikko pitkä kyllä"):
             "url": url, "published": published, "summary": "Ingressi"}
 
 
+def test_parse_date_iso_timestamp_not_swapped():
+    """ISO-aikaleiman päivä ja kuukausi eivät saa vaihtaa paikkaa.
+
+    "2026-07-11T19:00:00" tulkittiin päiväksi 7.11.2026, koska ISO-regexin \\b ei
+    osunut "11":n ja "T":n väliin ja dateutil sai sen dayfirst=True:llä."""
+    import datetime as dt
+    from src.fetch import parse_date
+    assert parse_date("2026-07-11T19:00:00") == dt.date(2026, 7, 11)
+    assert parse_date("2026-01-02T00:00:00Z") == dt.date(2026, 1, 2)
+    assert parse_date("2026-12-31T23:59:59+03:00") == dt.date(2026, 12, 31)
+    # Yksiselitteiset muodot eivät muutu
+    assert parse_date("2026-07-03") == dt.date(2026, 7, 3)
+    assert parse_date("28 Jul 2026") == dt.date(2026, 7, 28)
+    assert parse_date("5. juli 2026") == dt.date(2026, 7, 5)
+
+
 def test_pick_containers_skips_empty_shells():
     """Tyhjät rungot eivät saa varjostaa toimivaa selektoria.
 

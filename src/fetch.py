@@ -89,7 +89,12 @@ _MDY_RE = re.compile(
     r"\b([^\W\d_]{3,12})\.?\s+(\d{1,2})\.?,?\s+(\d{4})\b", re.UNICODE)
 # ISO-muoto on aina vuosi-kuukausi-päivä. dayfirst=True sai dateutilin kääntämään
 # sen ("2026-07-03" -> 3.3.2026), joten ISO tunnistetaan ennen dateutilia.
-_ISO_RE = re.compile(r"\b(\d{4})-(\d{2})-(\d{2})\b")
+# Loppuraja on (?!\d) eikä \b: aikaleimassa "2026-07-11T19:00:00" ei ole
+# sananrajaa "11":n ja "T":n välillä, joten \b ei osunut ja koko aikaleima valui
+# dateutilille -> dayfirst käänsi sen päiväksi 7.11.2026. Vika koski kaikkia
+# lähteitä, joilla päivä tulee <time datetime="...">-attribuutista tai
+# JSON-rajapinnasta, ja se osui aina kun päivä oli 1-12.
+_ISO_RE = re.compile(r"\b(\d{4})-(\d{2})-(\d{2})(?!\d)")
 
 
 # ---------------------------------------------------------------- helpers
@@ -250,6 +255,101 @@ def fetch_rss(source: Source, url: str, since: datetime.date,
     return articles, diag
 
 
+# ---------------------------------------------------------------- JSON-API
+def _dig(obj, path: str):
+    """Hae sisäkkäinen arvo pistepolulla ("data.items"). Tyhjä polku = obj."""
+    for part in (path or "").split("."):
+        if not part:
+            continue
+        if not isinstance(obj, dict):
+            return None
+        obj = obj.get(part)
+    return obj
+
+
+def fetch_json_api(source: Source, since: datetime.date) -> tuple[list[dict], dict]:
+    """Hae artikkelit sivuston omasta JSON-rajapinnasta.
+
+    Osa liitoista ajaa uutislistauksen JS-sovelluksena, joten HTML:stä ei löydy
+    otsikoita eikä Google News indeksoi niiden pääsivustoa. Sovellus hakee
+    datansa rajapinnasta, jota voi kutsua suoraan — se on näille lähteille ainoa
+    reitti, jolla saa oikeat päivämäärät ja linkit.
+
+    Konfiguraatio (sources.yaml):
+      url            rajapinnan osoite
+      method         GET tai POST (oletus POST)
+      payload        POST-runko sellaisenaan
+      items_key      pistepolku listaan, jos vastaus ei ole suoraan lista
+      fields         kenttäkartta: title / date / summary / image
+      link_template  artikkelin osoite, muotoiltuna API:n omilla kentillä
+    """
+    cfg = source.json_api
+    url = cfg.get("url")
+    if not url:
+        return [], {"total": 0}
+
+    headers = dict(config.HTTP_HEADERS)
+    headers.update({"Content-Type": "application/json", "Accept": "application/json"})
+    try:
+        if str(cfg.get("method", "POST")).upper() == "GET":
+            resp = requests.get(url, headers=headers, params=cfg.get("payload") or {},
+                                timeout=config.FETCH_TIMEOUT)
+        else:
+            resp = requests.post(url, headers=headers, json=cfg.get("payload") or {},
+                                 timeout=config.FETCH_TIMEOUT)
+        resp.raise_for_status()
+        payload = resp.json()
+    except (requests.RequestException, ValueError) as e:
+        log.debug("json_api failed %s: %s", url, e)
+        return [], {"total": -1}
+
+    items = _dig(payload, cfg.get("items_key", "")) if cfg.get("items_key") else payload
+    if not isinstance(items, list):
+        return [], {"total": 0}
+
+    fields = cfg.get("fields") or {}
+    f_title = fields.get("title", "Title")
+    f_date = fields.get("date", "PublishDate")
+    f_summary = fields.get("summary", "")
+    f_image = fields.get("image", "")
+    template = cfg.get("link_template", "")
+
+    diag = {"total": len(items), "domain": 0, "old": 0, "bad": 0, "nodate": 0}
+    articles = []
+    for it in items:
+        if not isinstance(it, dict):
+            diag["bad"] += 1
+            continue
+        title = clean_title(str(it.get(f_title) or ""))
+        try:
+            link = template.format(**it) if template else str(it.get("url") or "")
+        except (KeyError, IndexError):
+            link = ""
+        if len(title) < MIN_TITLE_LEN or not link:
+            diag["bad"] += 1
+            continue
+
+        date_obj = parse_date(str(it.get(f_date) or ""))
+        if date_obj is None:
+            diag["nodate"] += 1
+            continue
+        if date_obj < since:
+            diag["old"] += 1
+            continue
+
+        summary = ""
+        if f_summary and it.get(f_summary):
+            summary = BeautifulSoup(str(it[f_summary]), "html.parser").get_text(" ", strip=True)
+        image = ""
+        if f_image and it.get(f_image):
+            image = urljoin(url, str(it[f_image]))
+
+        articles.append(_article(source, title, link, date_obj.isoformat(), summary, image))
+        if len(articles) >= config.MAX_PER_SOURCE:
+            break
+    return articles, diag
+
+
 # ---------------------------------------------------------------- HTML
 def _select_first(el, selectors: list):
     for sel in selectors or []:
@@ -381,6 +481,8 @@ def fetch_source(source: Source, since: datetime.date) -> tuple[list[dict], dict
     methods = []
     if source.rss:
         methods.append(("rss", lambda: fetch_rss(source, source.rss, since)))
+    if source.json_api:
+        methods.append(("json_api", lambda: fetch_json_api(source, since)))
     if source.html_url:
         methods.append(("html", lambda: fetch_html(source, since)))
     if source.google_news_rss:

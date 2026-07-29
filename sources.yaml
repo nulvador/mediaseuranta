@@ -243,9 +243,28 @@ sources:
     tab: golfliitot
     country: Englanti
     language: en
-    rss: https://www.englandgolf.org/feed/
-    html:
-      url: https://www.englandgolf.org/news/
+    # RSS (/feed/) ei vastaa ja /news/ on Knockout-templaatti, jonka kortit ovat
+    # tyhjiä runkoja — kumpikin poistettu turhana pyyntönä. Google News indeksoi
+    # vain alidomainin live.whsplatform.englandgolf.org eli tulospalvelua.
+    # Oikea reitti on sivuston oma JSON-rajapinta; sama alusta kuin Golf
+    # Irelandilla, erona vain clubWebsiteId.
+    json_api:
+      url: https://www.englandgolf.org/api/news/GetNewsArticles
+      payload:
+        clubWebsiteId: 1002
+        pageSize: 20
+        pageNumber: 1
+        # order PITÄÄ olla isoilla: "desc" palauttaa HTTP 500. Ilman sorting-
+        # kenttää API antaa vanhimmat ensin (vuoden 2021 juttuja).
+        sorting:
+          - orderBy: PublishDate
+            order: DESC
+      fields:
+        title: Title
+        date: PublishDate
+        summary: SummaryHtml
+        image: ThumbnailImageUrl
+      link_template: https://www.englandgolf.org/news-detail?newsarticleid={NewsArticleId}
     google_news: englandgolf.org
 
   - id: scottish_golf
@@ -264,8 +283,24 @@ sources:
     # HTML-reitti poistettu 7/2026: golfireland.ie/news on Knockout-templaatti,
     # jonka uutiskortit ovat tyhjiä runkoja (linkki "#!", otsikoksi valikoitui CMS:n
     # "Edit Article"). Lähde näytti tuottavan 8 juttua, jotka olivat kaikki roskaa.
-    # Oikea sisältö tulee POST-APIsta /api/news/GetNewsArticles (clubWebsiteId +
-    # pageSize), jota fetch.py ei tue -> toistaiseksi vain Google News.
+    # Oikea sisältö tulee sivuston omasta JSON-rajapinnasta (sama alusta kuin
+    # England Golfilla). Google News jää varareitiksi: se indeksoi vain
+    # alidomainin live.clubhouse.golfireland.ie eli tulospalvelua.
+    json_api:
+      url: https://www.golfireland.ie/api/news/GetNewsArticles
+      payload:
+        clubWebsiteId: 1003
+        pageSize: 20
+        pageNumber: 1
+        sorting:
+          - orderBy: PublishDate
+            order: DESC
+      fields:
+        title: Title
+        date: PublishDate
+        summary: SummaryHtml
+        image: ThumbnailImageUrl
+      link_template: https://www.golfireland.ie/news-detail?newsarticleid={NewsArticleId}
     google_news: golfireland.ie
 
   - id: dgv_germany
