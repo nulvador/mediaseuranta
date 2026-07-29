@@ -259,6 +259,44 @@ def _select_first(el, selectors: list):
     return None
 
 
+def _looks_like_article(c, sel: dict) -> bool:
+    """Onko containerissa sekä käyttökelpoinen otsikko että linkki?"""
+    title_el = _select_first(c, sel.get("title", []))
+    title = clean_title(title_el.get_text(" ", strip=True)) if title_el is not None else ""
+    if len(title) < MIN_TITLE_LEN:
+        cands = [clean_title(a.get_text()) for a in c.find_all("a")]
+        cands = [t for t in cands if len(t) >= MIN_TITLE_LEN]
+        title = max(cands, key=len) if cands else ""
+    if len(title) < MIN_TITLE_LEN:
+        return False
+    return bool(c.find("a", href=True) or (c.name == "a" and c.get("href")))
+
+
+def _pick_containers(soup, sel: dict) -> list:
+    """Valitse container-selektori, joka tuottaa eniten käyttökelpoisia osumia.
+
+    Ennen tässä otettiin ensimmäinen selektori joka osui mihinkään. Se meni
+    pieleen Drupal-sivustoilla: oletuslistan 'article' osuu EGA:lla 18
+    kuvaelementtiin (media--type-image), joten oikeaa '.views-row'-selektoria ei
+    kokeiltu koskaan ja loki näytti "18 puutteellista". Nyt selektori kelpaa
+    vain, jos sen osumista löytyy otsikko ja linkki — tyhjät rungot eivät enää
+    varjosta toimivaa selektoria.
+
+    Jos yksikään ei tuota käyttökelpoisia, palautetaan ensimmäinen osuma, jotta
+    diagnostiikka kertoo edelleen "N puutteellista" eikä "selektorit eivät osu".
+    """
+    first_match = []
+    for s in sel.get("container", []):
+        found = soup.select(s)
+        if not found:
+            continue
+        if not first_match:
+            first_match = found
+        if any(_looks_like_article(c, sel) for c in found):
+            return found
+    return first_match
+
+
 def fetch_html(source: Source, since: datetime.date) -> tuple[list[dict], dict]:
     """Palauttaa (ikkunaan osuvat artikkelit, diagnostiikka)."""
     resp = _http_get(source.html_url)
@@ -270,11 +308,7 @@ def fetch_html(source: Source, since: datetime.date) -> tuple[list[dict], dict]:
         tag.decompose()
 
     sel = source.html_selectors
-    containers = []
-    for s in sel.get("container", []):
-        containers = soup.select(s)
-        if containers:
-            break
+    containers = _pick_containers(soup, sel)
     if not containers:
         return [], {"total": 0}   # sivu vastasi, mutta selektorit eivät osuneet
 
@@ -282,11 +316,11 @@ def fetch_html(source: Source, since: datetime.date) -> tuple[list[dict], dict]:
     articles = []
     for c in containers:
         title_el = _select_first(c, sel.get("title", []))
-        title = clean_title(title_el.get_text()) if title_el is not None else ""
+        title = clean_title(title_el.get_text(" ", strip=True)) if title_el is not None else ""
         if len(title) < MIN_TITLE_LEN:
             # Varasuunnitelma: monella sivustolla otsikko on suoraan linkissä
             # eikä h2/h3-elementissä. Valitse pisin järkevä linkkiteksti.
-            candidates = [clean_title(a.get_text()) for a in c.find_all("a")]
+            candidates = [clean_title(a.get_text(" ", strip=True)) for a in c.find_all("a")]
             candidates = [t for t in candidates if len(t) >= MIN_TITLE_LEN]
             title = max(candidates, key=len) if candidates else ""
         if len(title) < MIN_TITLE_LEN:

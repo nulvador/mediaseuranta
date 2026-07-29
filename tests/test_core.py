@@ -82,6 +82,31 @@ def _art(url="https://x.fi/a", title="Testiotsikko pitkä kyllä"):
             "url": url, "published": published, "summary": "Ingressi"}
 
 
+def test_pick_containers_skips_empty_shells():
+    """Tyhjät rungot eivät saa varjostaa toimivaa selektoria.
+
+    EGA:n Drupal-sivulla oletuslistan 'article' osui 18 kuvaelementtiin,
+    joten oikeaa '.views-row'-selektoria ei kokeiltu koskaan."""
+    from bs4 import BeautifulSoup
+    from src.fetch import _pick_containers
+    html = """
+      <article class="media"><img src="a.jpg"></article>
+      <article class="media"><img src="b.jpg"></article>
+      <div class="views-row"><h2>Oikea uutisotsikko tässä</h2>
+        <a href="/uutinen">lue</a></div>
+    """
+    soup = BeautifulSoup(html, "lxml")
+    sel = {"container": ["article", ".views-row"], "title": ["h2", "h3"]}
+    picked = _pick_containers(soup, sel)
+    assert len(picked) == 1
+    assert "views-row" in picked[0].get("class")
+
+    # Jos mikään ei tuota käyttökelpoisia, palautetaan ensimmäinen osuma niin
+    # että diagnostiikka kertoo "N puutteellista" eikä "selektorit eivät osu".
+    soup2 = BeautifulSoup('<article class="media"><img src="a.jpg"></article>', "lxml")
+    assert len(_pick_containers(soup2, sel)) == 1
+
+
 def test_repair_link():
     from src.fetch import repair_link
     # NGF:n syöte: skeema ilman kaksoispistettä -> feedparser liimasi base-URLin

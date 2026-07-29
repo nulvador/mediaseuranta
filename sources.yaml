@@ -221,8 +221,21 @@ sources:
     tab: golfliitot
     country: Eurooppa
     language: en
+    # Drupal-sivusto, jolla /news-and-media sisältää kolme erillistä näkymää:
+    # uutiset, kuvagalleriat ja videot. Container on rajattava uutisnäkymään,
+    # muuten mukaan tulee "Photo Gallery"- ja "Video"-rivejä. Oletuslistan
+    # 'article' osui täällä 18 kuvaelementtiin (media--type-image), mistä tuli
+    # loki "18 puutteellista".
     html:
       url: https://www.ega-golf.ch/news-and-media
+      selectors:
+        container: ['.view-display-id-attachment_news_all .views-row']
+        title: ['h2', 'h3']
+        # Luokka on 'news-page-item__small-date', ei 'date' — oletuslistan
+        # date-selektorit eivät osu, jolloin juttu jäisi päivämäärättömäksi ja
+        # tulkittaisiin ikuisesti tuoreeksi.
+        date: ['.news-page-item__small-date', '.field--name-field-date']
+        summary: ['p']
     google_news: ega-golf.ch
 
   - id: england_golf
