@@ -48,12 +48,13 @@ tekoäly, kumppanuudet ja rahoitusmallit, kestävä kehitys, harrastajamäärien
 kehitys, uudet konseptit, sääntö- ja hallintomuutokset.
 
 Perusperiaate: valtaosa golfliittojen uutisvirrasta on kilpailu-uutisointia ja
-arkea, joka ei kiinnosta viestintäpäällikköä. Kohta 1 karsii sen kahdella
+arkea, joka ei kiinnosta viestintäpäällikköä. Kohta 1 karsii sen kolmella
 portilla, kohta 5 asettaa lopuille tason. Kun epäröit, valitse alempi taso tai
 jätä artikkeli pois.
 
 Tee jokaiselle artikkelille:
-1. relevant — kaksi porttia. Jos artikkeli osuu jompaankumpaan, relevant=false.
+1. relevant — kolme porttia. Jos artikkeli osuu mihin tahansa niistä,
+   relevant=false.
 
    PORTTI A — KILPAILUSUORITUS. Tulokset, sijoitukset, voitot, mitalit,
    sarjatilanteet, joukkue- ja maajoukkuevalinnat, lähtöajat, karsinnat,
@@ -103,6 +104,28 @@ Tee jokaiselle artikkelille:
    ensi viikon kilpailuun", "Dr Irena Eris Ladies Golf Tour saapuu Tokary Golf
    Clubille", "Schweini, Kahn ja kumppanit hyväntekeväisyysgolfin
    mestaruuskisoissa"
+
+   PORTTI C — EI ANNA VIESTINTÄPÄÄLLIKÖLLE MITÄÄN. Kysy: saako Golfliitto
+   tästä jotain TEHTÄVÄÄ, TIEDETTÄVÄÄ tai SEURATTAVAA? Jos ei, relevant=false
+   — myös silloin, kun juttu ei osu portteihin A ja B. Portit A ja B tunnistavat
+   aihetyypin; tämä portti kysyy hyödyn, eikä luokittelun epäonnistuminen ole
+   peruste pitää juttu mukana.
+   Tunnusmerkki: juttu kertoo GOLFISTA PELINÄ tai YKSITTÄISESTÄ PELAAJASTA eikä
+   liiton toiminnasta, golfin kehittämisestä tai toimintaympäristöstä. Tähän
+   kuuluvat pelitekniikka-, opetus- ja vinkkijutut, pelaajan taitojen tai
+   pelitavan erittely, viihde- ja kuriositeettijutut sekä yksittäisen pelaajan
+   tai jäsenen henkilökuva.
+   POIS esim: "Henseleitin chippaus-taidot ja bunkkerimagiaa", "Mies, joka
+   pelasi nelinpeliä Cejkan kanssa", "Open-voittajan mentaalinen salaisuus"
+   Portti C EI karsi, jos juttu kertoo liiton toiminnasta tai golfin
+   hallinnosta — olkoon sävy miten kevyt. Läpi menevät liiton oman toiminnon
+   taustajuttu ("Course Raterien työn jäljillä"), nimitykset ja
+   luottamustehtävät, palkinnot ja juhlavuodet.
+   Muistokirjoitus menee läpi vain kansainvälisesti merkittävästä
+   golfvaikuttajasta: R&A:n, USGA:n, EGA:n tai IGF:n johtotehtävissä
+   toimineesta tai maailmanlaajuisesti tunnetusta henkilöstä. Toisen maan
+   kansallisen tason vaikuttaja ei riitä, joten "Muistosanat: Guðmundur
+   Oddsson" on POIS.
 
    Jos sama uutinen esiintyy monta kertaa, vain yksi relevant=true, muut false.
 2. title_fi: Käännä otsikko sujuvaksi, toimitukselliseksi suomeksi. ÄLÄ käännä
@@ -173,7 +196,7 @@ Tee jokaiselle artikkelille:
      * Liiton kannanotto yksittäiseen kv-asiaan
      * Kevyet henkilö- ja taustajutut: "Course Raterien jalanjäljillä"
      * Kumppanien luettelointi: "The Openin lähetyskumppanit"
-     * Muu relevantiksi jäänyt arkijuttu
+     * Muu relevantiksi jäänyt arkijuttu, joka kertoo liiton toiminnasta
 6. themes: 0-3 kpl näistä, vain jos selvästi osuvat: {themes}
 
 PAKOLLINEN: palauta täsmälleen yksi objekti JOKAISTA syötteen riviä kohti, myös
@@ -220,6 +243,29 @@ Tee jokaiselle artikkelille:
    tapahtumatiedotteet ja -ennakot ("nämä ottelut TV:ssä", "suurleiri
    käyntiin"), tapahtuman jälkiraportti tai onnistuminen, navigaatiotekstit,
    mainokset.
+   Järjestelmän tai palvelun MAINITSEMINEN ei nosta arkiviestiä pois tästä
+   portista. Ilmoittautumis-, määräaika-, koulutus- ja aikatauluviesti on POIS,
+   vaikka siinä nimettäisiin uusi järjestelmä, sen käyttökoulutus tai
+   suoratoistopalvelu: uutinen on tällöin määräaika tai koulutus, ei
+   järjestelmä. Tämä osio KARSII; tason valinta tehdään vasta kohdassa 5.
+   POIS esim: "Nuorten valtakunnallisten sarjojen ilmoittautuminen tehdään
+   eLSA-sarjanhallinnan kautta 1.8. mennessä", "Vielä ehdit mukaan uuden
+   tilastointiohjelman käyttökoulutukseen", "Katso Mestareiden Cup
+   SalibandyTV:stä – Early bird -hinta voimassa"
+
+   PORTTI C — EI ANNA GOLFLIITOLLE MITÄÄN. Kysy: saako Golfliitto tästä jotain
+   TEHTÄVÄÄ, TIEDETTÄVÄÄ tai SEURATTAVAA? Jos ei, relevant=false — myös silloin,
+   kun juttu ei osu portteihin A ja B. Portit A ja B tunnistavat aihetyypin;
+   tämä portti kysyy hyödyn, eikä luokittelun epäonnistuminen ole peruste
+   pitää juttu mukana.
+   Tähän kuuluvat yksittäisen seuran oma toiminta ja pelaajapolut, henkilökuvat
+   ja muistokirjoitukset sekä lajin sisäinen viihde- ja kuriositeettisisältö.
+   Siirrettävää mallia ei synny yhden seuran arjesta eikä yhden henkilön
+   tarinasta, olkoon se miten ansiokas.
+   POIS esim: "BC Nokia vahvistaa tyttöjen pelaajapolkua", "Kari Pätäri
+   1961–2026"
+   Portti C EI karsi liittotasoista toimintaa: edunvalvontaa, rahoitusta,
+   lakimuutoksia, järjestelmiä, tutkimusta tai koko toimialaa koskevaa dataa.
 2. title_fi: otsikko sellaisenaan (uutiset ovat jo suomeksi), siivoa vain
    mahdollinen lähdejäänne lopusta.
 3. summary_fi: 1-2 lauseen tiivistelmä, joka kertoo MITÄ GOLFLIITTO SAA TÄSTÄ —

@@ -78,7 +78,24 @@ tarkista ensin `title_key`-törmäys — älä oleta lähdettä rikkinäiseksi.
 ## Priorisointisäännöt (src/analyze.py)
 
 Arviointi on kaksivaiheinen, eikä vaiheita saa sekoittaa: **kohta 1 karsii**
-kahdella portilla, **kohta 5 asettaa lopuille tason** kolmella kysymyksellä.
+kolmella portilla, **kohta 5 asettaa lopuille tason** kolmella kysymyksellä.
+
+### Rautainen sääntö: portti ei koskaan mainitse tasoa
+
+Tämä on kalibroinnin tärkein oppi, ja se maksoi kolme peräkkäistä virhekierrosta
+7/2026. Jokainen kerta kun porttiosioon tai tasolistaan kirjoitettiin täsmennys
+muodossa "X on korkea" tai "korkea tarkoittaa myös Y", malli käytti sitä
+**ylennysperusteena** ja nosti juttuja jotka porttien olisi pitänyt karsia:
+
+| Lisätty täsmennys | Mitä malli nosti |
+|---|---|
+| "matalan kynnyksen MALLI on korkea" (porttiin B) | "Get into Golf Week" ja Sveitsin tulosjuttu punaiseksi |
+| "Juttu kertoo järjestelmästä: käyttöönotosta…" (korkeaan) | "uuden tilastointiohjelman käyttökoulutus" punaiseksi |
+
+Siksi: **porttiosio karsii eikä mainitse tasoja lainkaan.** Jos raja koskee
+sitä, mikä *karsiutuu*, kirjoita se porttiin. Jos se koskee sitä, mikä *nousee*,
+kirjoita se kohtaan 5 — mutta älä koskaan kirjoita porttiin lausetta, josta voi
+lukea "tämä kuuluu korkeaan".
 Jokainen sääntö kuuluu täsmälleen yhteen paikkaan — päällekkäisyydet sekoittavat
 mallin. Epäröidessä valitse alempi taso tai jätä pois.
 
@@ -110,6 +127,35 @@ navigaatio, mainokset.
 Lajiliitto-välilehdellä portti A on tiukempi: **suomalaispoikkeusta ei ole**,
 myös Suomen mitalit karsiutuvat. Golfliittoa kiinnostavat muiden lajien
 toimintamallit, ei menestys.
+
+Portti B kattaa myös tapaukset, joissa arkiviestissä **mainitaan** järjestelmä.
+Ilmoittautumis-, määräaika-, koulutus- ja aikatauluviesti karsiutuu, vaikka
+siinä nimettäisiin uusi järjestelmä tai sen käyttökoulutus: uutinen on määräaika
+tai koulutus, ei järjestelmä. Järjestelmän mainitseminen ≠ järjestelmästä
+kertominen.
+
+**Portti C — tarkoitusportti.** Portit A ja B tunnistavat aihetyypin (kilpailu,
+arkirutiini). Portti C kysyy hyödyn: *saako Golfliitto tästä jotain tehtävää,
+tiedettävää tai seurattavaa?* Ilman sitä sisältö joka ei ole kilpailu eikä
+hallintoa — lukijalle suunnattu golfsisältö, muistokirjoitus, pelaajakuvaus —
+läpäisi molemmat portit ja valui matalan kaatoluokkaan. **Luokittelun
+epäonnistuminen ei ole peruste pitää juttu mukana.**
+
+- Golfliitot: karsii pelitekniikka- ja opetusjutut, pelaajan taitojen erittelyn,
+  viihde- ja kuriositeettijutut, yksittäisen pelaajan henkilökuvan. Tunnusmerkki:
+  juttu kertoo **golfista pelinä tai yksittäisestä pelaajasta**, ei liiton
+  toiminnasta. Ei karsi liiton oman toiminnon taustajuttua ("Course Raterien työn
+  jäljillä"), nimityksiä, palkintoja eikä juhlavuosia.
+- Lajiliitot: karsii yksittäisen seuran oman toiminnan ja pelaajapolut,
+  henkilökuvat ja muistokirjoitukset. Ei karsi liittotasoista edunvalvontaa,
+  rahoitusta, lakimuutoksia, järjestelmiä eikä toimialadataa.
+- **Muistokirjoitus** menee golfliitoissa läpi vihreänä vain kansainvälisesti
+  merkittävästä vaikuttajasta (R&A, USGA, EGA, IGF -johtotehtävät tai
+  maailmanlaajuisesti tunnettu). Toisen maan kansallisen tason vaikuttaja ei
+  riitä. Lajiliitoissa muistokirjoitukset karsiutuvat aina.
+- Matalan kaatoluokka on rajattu muotoon "muu relevantiksi jäänyt arkijuttu,
+  **joka kertoo liiton toiminnasta**". Rajaamaton kaatoluokka toimi magneettina:
+  se muutti "en osaa luokitella" muotoon "pidetään vihreänä".
 
 ### Lajiliitot arvioidaan golfin näkökulmasta
 
