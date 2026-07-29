@@ -90,7 +90,9 @@ Tee jokaiselle artikkelille:
    "Virallinen tiedote: Ranskan miesten Mid-Amateur-joukkuemestaruuskilpailut
    peruttu"
 
-   PORTTI B — ARKIRUTIINI. Ilmoittautumiset sekä yksittäiset talkoo- ja
+   PORTTI B — ARKIRUTIINI. Ilmoittautumiset — eli kilpailu- ja
+   tapahtumailmoittautumiset, EI liiton oman kehitys-, valmennus- tai
+   tukiohjelman hakuaika — sekä yksittäiset talkoo- ja
    toimitsijakutsut, aikataulut ja kisakalenterit, tapahtumatiedotteet ja
    -ennakot, tapahtuman jälkiraportti tai onnistuminen, yksittäiset turnaukset
    ja muistokilpailut myös sekamuotoiset, hyväntekeväisyys- ja julkkisturnaukset,
@@ -145,6 +147,13 @@ Tee jokaiselle artikkelille:
    KORKEA — voiko Golfliitto TEHDÄ tälle jotain: kopioida, soveltaa, varautua
    tai reagoida? Vaatii konkretiaa: valmis palvelu, tehty päätös, julkaistu
    tutkimus tai mitattuja tuloksia. Pelkkä aikomus tai visio EI riitä korkeaan.
+   Konkretian pitää NÄKYÄ aineistossa. Jos ingressiä ei ole ja otsikko on
+   kuvaannollinen tai epämääräinen, älä päättele mistä juttu todennäköisesti
+   kertoo — silloin korkea ei ole mahdollinen, vaan valitse keltainen tai
+   vihreä. "Vihreää kultaa Blaufeldenista" ilman ingressiä ei ole todiste
+   käytössä olevasta kestävän kehityksen innovaatiosta. Sen sijaan otsikko, joka
+   itse kertoo konkretian, riittää: "First Tee -apurahan rahoitus uusittu
+   viidettä vuotta" tai "Ilmaiseksi Solheim Cupiin nuorisojäsenten kanssa".
      * Sääntö-, tasoitus- (WHS) tai amatööristatusmuutos. Myös sääntötulkinta,
        joka nousee laajaan keskusteluun: "Schefflerin ilmainen droppi"
      * Julkaistu tutkimus tai raportti: kasvu- ja harrastajamäärädata
@@ -194,6 +203,9 @@ Tee jokaiselle artikkelille:
        kenttäkelpoisuustestiin"
      * Vapaaehtois- ja koulutusohjelmat: "Vapaaehtoisohjelma greenkeepereille
        Espanjan avoimiin". Yksittäiset talkookutsut ovat POIS (portti B)
+     * Liiton kehitys-, valmennus- ja tukiohjelmat sekä niiden hakuajat, kun
+       jutussa ei ole ohjelman sisältöä, kohderyhmädataa eikä tuloksia:
+       "Alueellisten kehitysohjelmien hakemukset"
      * Rutiinikampanjat ja hinnoittelu, myös vuosittain toistuva
        tutustumisviikko: "syksyn jäsenmaksuale", "Get into Golf Week -kampanja
        palaa elokuussa". Uusi kokeilumuoto olisi korkea, mutta saman kampanjan
