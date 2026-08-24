@@ -437,3 +437,173 @@ sources:
     country: USA
     language: en
     google_news: usga.org
+
+  # ================= SUOMALAINEN MEDIA =================
+  # Oma välilehti omalla promptilla (_PROMPT_MEDIA). Ikkunat ovat samat kuin
+  # muilla välilehdillä: LOOKBACK_DAYS keruussa, ANALYZE_DAYS analyysissä,
+  # REPORT_DAYS näkyvyydessä.
+  #
+  # Kolme sääntöä, jotka on mitattu — älä muuta ilman uutta mittausta:
+  #
+  # 1. "when:" on PAKOLLINEN. Ilman sitä Google News järjestää tulokset
+  #    relevanssin mukaan, ja tuoreet jäävät sadan merkinnän ulkopuolelle:
+  #    haku "golf" antoi 39 tuoretta ilman operaattoria ja 100 sen kanssa.
+  #    Pidä ikkuna samana kuin näkyvyysikkuna. Kun näkyvyys laskettiin
+  #    30 pv:stä 7 pv:hyn, "when:7d" alkoi HUKATA tuoreita: se palautti 100
+  #    merkintää, joista vain 41 oli 7 pv:n sisällä, kun "when:7d" antoi 54 —
+  #    kaikki ikkunan sisältä. Liian pitkä when: täyttää merkintäbudjetin
+  #    jutuilla, jotka karsiutuvat silti iän takia.
+  # 2. Hae YHDELLÄ sanalla. Sulkeet ja usean termin OR-ketjut romauttavat
+  #    osumamäärän (golf -> 30, golf (Suomi OR Golfliitto OR golfseura) -> 1).
+  #    Kahden sanan AND on yhtä paha: "golfkenttä kunta" -> 0.
+  # 3. ÄLÄ hae medioittain (site:is.fi). site:-haku ohittaa when:-operaattorin
+  #    ja palauttaa vuosien takaisia juttuja, jotka syövät koko merkintäbudjetin
+  #    — is.fi palautti juttuja vuodelta 2021. Laaja hakusana tavoittaa isot
+  #    lehdet ilman sitäkin, ja lisäksi maakuntalehdet (Viiskunta, Lapin Kansa,
+  #    Kirkkonummen Sanomat), joita erikseen ei tulisi listanneeksi.
+  #
+  # Nollaosuma ei ole vika: nimihaut osuvat harvoin mutta ovat arvokkaita
+  # osuessaan. Media-lähteitä ei siksi lasketa mukaan "lähteet ilman
+  # artikkeleita" -varoitukseen.
+  #
+  # Julkaisija tulee Google Newsin <source>-tagista, joten listalla näkyy
+  # oikea lehti (Iltalehti, HS.fi) eikä hakulauseen nimi.
+
+  - id: media_golf
+    name: "Haku: golf"
+    tab: media
+    country: Suomi
+    language: fi
+    google_news_query: "golf when:7d"
+    max_articles: 60
+    exclude: &media_roska
+      - "ohjelman aikataulut"      # Telkku-ohjelmatiedot, toistuu joka ajossa
+    exclude_publishers: &media_pois_julkaisijat
+      # Liiton OMA kanava ei ole mediaseurantaa: sen sisällön te tunnette jo.
+      # Huom. tämä ei estä poimintaa — kun Paraurheilu.fi julkaisee saman
+      # uutisen, julkaisija on Paraurheilu.fi ja juttu jää listalle. Juuri se
+      # läpimeno on kiinnostavaa, ei alkuperäinen tiedote.
+      - "suomen golfliitto"
+      - "golf.fi"
+      # Ulkomaiset, jotka laaja hakusana raahaa mukanaan joka ajossa
+      - "portugal resident"        # portugalilaista kenttä- ja asuntomarkkinointia
+      - "golfpost.com"             # saksankielinen kiertueuutisointi
+    # EHDOLLINEN karsinta: julkaisija pois, PAITSI jos otsikko osuu listaan.
+    # Golfpiste on lajimedia, jonka virta on pääosin kiertuetuloksia,
+    # varusteita ja palstailmoituksia. Painopiste on kansallisissa ja
+    # maakuntamedioissa, joten Golfpiste jää mukaan vain silloin kun juttu
+    # koskee liittoa itseään: liittoa suoraan, Team Finlandia, tai liiton
+    # toiminnan kritiikkiä.
+    #
+    # HUOM. ASTEVAIHTELU. Fraasit ovat osamerkkijonoja, ja suomen heikko aste
+    # katkaisee osuman: "liitto" EI osu muotoihin "liiton" tai "liitolta",
+    # koska toinen t katoaa. Juuri ne muodot esiintyvät kritiikissä ("liiton
+    # linja", "liitolta moitteita"), joten listalla on molemmat vartalot:
+    # "liitto" (liitto, liittoa, liittokokous) ja "liito" (liiton, liitolta,
+    # liitolle, liitossa). Jos lisäät fraaseja, tarkista taivutusmuodot.
+    exclude_publishers_unless: &media_ehdolliset
+      golfpiste.com:
+        - "golfliit"      # Golfliitto, Golfliiton, Golfliitolta
+        - "liitto"        # liitto, liittoa, liittokokous
+        - "liito"         # liiton, liitolta, liitolle, liitossa
+        - "team finland"
+
+  - id: media_golfkentta
+    name: "Haku: golfkenttä"
+    tab: media
+    country: Suomi
+    language: fi
+    google_news_query: "golfkenttä when:7d"
+    max_articles: 30
+    exclude: *media_roska
+    exclude_publishers: *media_pois_julkaisijat
+    exclude_publishers_unless: *media_ehdolliset
+
+  - id: media_golfliitto
+    name: "Haku: golfliitto"
+    tab: media
+    country: Suomi
+    language: fi
+    google_news_query: 'golfliitto OR "suomen golfliitto" when:7d'
+    max_articles: 30
+    exclude: *media_roska
+    exclude_publishers: *media_pois_julkaisijat
+    exclude_publishers_unless: *media_ehdolliset
+
+  - id: media_suomi_golf
+    name: "Haku: suomi golf"
+    tab: media
+    country: Suomi
+    language: fi
+    google_news_query: '"suomi golf" when:7d'
+    max_articles: 30
+    exclude: *media_roska
+    exclude_publishers: *media_pois_julkaisijat
+    exclude_publishers_unless: *media_ehdolliset
+
+  - id: media_golfin_sm
+    name: "Haku: golfin SM"
+    tab: media
+    country: Suomi
+    language: fi
+    google_news_query: "golfin sm when:7d"
+    max_articles: 30
+    exclude: *media_roska
+    exclude_publishers: *media_pois_julkaisijat
+    exclude_publishers_unless: *media_ehdolliset
+
+  - id: media_golfseura
+    name: "Haku: golfseura"
+    tab: media
+    country: Suomi
+    language: fi
+    google_news_query: "golfseura when:7d"
+    max_articles: 30
+    exclude: *media_roska
+    exclude_publishers: *media_pois_julkaisijat
+    exclude_publishers_unless: *media_ehdolliset
+
+  - id: media_paragolf
+    name: "Haku: paragolf"
+    tab: media
+    country: Suomi
+    language: fi
+    google_news_query: "paragolf when:7d"
+    max_articles: 20
+    exclude_publishers: *media_pois_julkaisijat
+    exclude_publishers_unless: *media_ehdolliset
+
+  - id: media_golfosake
+    name: "Haku: golfosake"
+    tab: media
+    country: Suomi
+    language: fi
+    google_news_query: "golfosake OR golfosakkeet when:7d"
+    max_articles: 20
+
+  # Henkilöhaut: osuvat harvoin, mutta juuri niihin juttuihin joissa liitto on
+  # äänessä mediassa. "Juha Korhonen" on yleinen nimi, joten se on pakko sitoa
+  # golfiin — ilman rajausta haku palautti metsästysseuran puheenjohtajan ja
+  # Seiska-juttuja. "Antti Tiitola" on harvinainen ja toimii sellaisenaan.
+    exclude_publishers: *media_pois_julkaisijat
+    exclude_publishers_unless: *media_ehdolliset
+
+  - id: media_tiitola
+    name: "Haku: Antti Tiitola"
+    tab: media
+    country: Suomi
+    language: fi
+    google_news_query: '"antti tiitola" when:7d'
+    max_articles: 20
+    exclude_publishers: *media_pois_julkaisijat
+    exclude_publishers_unless: *media_ehdolliset
+
+  - id: media_korhonen
+    name: "Haku: Juha Korhonen (golf)"
+    tab: media
+    country: Suomi
+    language: fi
+    google_news_query: '"juha korhonen" golf when:7d'
+    max_articles: 20
+    exclude_publishers: *media_pois_julkaisijat
+    exclude_publishers_unless: *media_ehdolliset

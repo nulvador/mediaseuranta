@@ -268,7 +268,19 @@ Tee jokaiselle artikkelille:
    POIS esim: "Nuorten valtakunnallisten sarjojen ilmoittautuminen tehdään
    eLSA-sarjanhallinnan kautta 1.8. mennessä", "Vielä ehdit mukaan uuden
    tilastointiohjelman käyttökoulutukseen", "Katso Mestareiden Cup
-   SalibandyTV:stä – Early bird -hinta voimassa"
+   SalibandyTV:stä – Early bird -hinta voimassa", "Miten tukea nuorta pelaajaa
+   vanhempana? – Coach Karin luento ja työpaja tarjolla 10 salibandyseuralle"
+   Myös silloin kun koulutus, luento tai työpaja tarjotaan usealle seuralle
+   kerralla, kyse on koulutustarjonnasta eikä rakenteesta.
+   PORTTI B EI SULJE POIS, jos juttu kertoo lajin pääsystä valtakunnalliseen
+   mediaan tai kaupalliseen suoratoistopalveluun (TV-kanava, HBO Max, Ruutu),
+   tai aliedustetun kohderyhmän (tytöt, naiset) tavoittamisesta uutena
+   harrastajajoukkona — viestintäpäällikkö seuraa näitä ilmiöinä. Poikkeus ei
+   ohita porttia A: kilpailusuoritus sekä joukkue-, maajoukkue- ja
+   leirivalinnat karsiutuvat siitä huolimatta. Liiton OMAN kanavan
+   katsomiskehotus ei ole tätä ("katso SalibandyTV:stä"), eikä poikkeus koske
+   ilmoittautumis-, aikataulu- tai hintaviestiä, vaikka se osuisi samaan
+   kohderyhmään.
 
    PORTTI C — EI ANNA GOLFLIITOLLE MITÄÄN. Kysy: saako Golfliitto tästä jotain
    TEHTÄVÄÄ, TIEDETTÄVÄÄ tai SEURATTAVAA? Jos ei, relevant=false — myös silloin,
@@ -296,22 +308,39 @@ Tee jokaiselle artikkelille:
    KORKEA — voisiko Golfliitto tehdä SAMAN? Malli, päätös tai data, joka kääntyy
    golfiin lähes sellaisenaan tai sitoo golfia suoraan. Vaatii konkretiaa: tehty
    päätös, käytössä oleva palvelu tai mitattuja tuloksia. Aikomus EI riitä.
+   TESTI ennen korkeaa: kirjoita mielessäsi lause "Golfliitto voisi tehdä
+   saman: ___". Jos lause vaatii venytystä tai jää yleiseksi ("saisi lisää
+   näkyvyyttä", "hyvä esimerkki muille", "innostava tarina"), taso on
+   KESKITASO. Korkea on harvinainen — valtaosa relevantiksi jääneistä on
+   keskitasoa tai matalaa.
      * Koko liikuntakenttää sitova päätös, joka koskee myös golfseuroja:
        liikuntalaki, seuratuki, verotus, OKM:n avustukset, veikkausvarat,
        Olympiakomitean linjaus
      * Edunvalvontavoitto, jota Golfliitto voisi tavoitella samalla logiikalla:
        "pesäpalloilijoille ikäpoikkeuslupa ajokorttiin"
      * Käytössä oleva digipalvelu tai avoin data, jolle on golfvastine: yhteinen
-       jäsenrekisteri (vrt. Golf-ID), avoin datarajapinta, varausjärjestelmä
+       jäsenrekisteri (vrt. Golf-ID), avoin datarajapinta, varausjärjestelmä.
+       Oman lajin erityispiirteeseen sidottu järjestelmä tai olemassa olevan
+       palvelun versiopäivitys ja pieni ominaisuuslisäys EIVÄT ole tätä:
+       "Karttarekisteri uudistuu elokuun lopussa" on KESKITASO,
+       "Omatoimirastit Rastilippu-palvelussa" on MATALA
      * Harrastajahankintamalli, josta on TULOKSIA ja joka toimisi golfissa:
-       "Hippo Street Tennis kokosi 10 000 lasta" (vrt. matalan kynnyksen golf)
+       "Hippo Street Tennis kokosi 10 000 lasta" (vrt. matalan kynnyksen golf),
+       "Ikiliike-pilotit innostivat seuroja kokeilemaan uutta – tuloksena uusia
+       harrastajia". Jutun on kuvattava MALLI: kuka otti käyttöön ja miten se
+       toimii. Yhden tapahtuman onnistuminen ei ole malli
      * Kumppanuus- tai sponsorointimalli ja sen menetys: "NOCCO Leijonien
        pääyhteistyökumppaniksi", pääkumppanin vetäytyminen
      * Kohdennettu rahoituspäätös, jonka rakenteen voi kopioida: "yli miljoona
-       euroa nuorten huipulle tähtäävien tukemiseen"
+       euroa nuorten huipulle tähtäävien tukemiseen". Tehty päätös on korkea,
+       avoin hakuilmoitus ja sen määräaika MATALA: "Läpimurtosäätiön apurahat
+       haettavissa"
      * Liiton talouskriisi tai konkurssiuhka — varoitus samasta riskistä
      * Safeguarding ja häirinnän vastaiset palvelut: "Et ole yksin -laajennus"
-     * Koko toimialaa koskeva huolidata: "vapaaehtoisten määrä romahti 20 %"
+     * Koko toimialaa koskeva huolidata julkaistuna tutkimuksena tai mitattuna
+       lukuna: "vapaaehtoisten määrä romahti 20 %". Kyselyn tai selvityksen
+       KÄYNNISTÄMINEN on KESKITASO — tulokset ratkaisevat, eivät aikeet:
+       "Valtakunnallinen kysely kuntosuunnistajille 2026"
      * Lajin asemaa muuttava kv-päätös, joka voisi koskea myös golfia:
        "yhdistetty putoaa olympiaohjelmasta" (vrt. golfin olympiastatus)
 
@@ -325,7 +354,17 @@ Tee jokaiselle artikkelille:
        "liiton verkkosivuilla ongelmia"
      * Urheiluoikeudellinen tapaus: dopingjuttu käräjillä
      * Ilmiö tai trendi, jota ei voi suoraan kopioida
-     * Inkluusiokärkinen uutinen, jossa ei ole uutta mallia
+     * Inkluusiokärkinen uutinen, jossa ei ole uutta mallia: "Vuoden toinen
+       Adeona Girls Camp -leiri kokosi yhteen tyttöjunioreita"
+     * Lajin tai kohderyhmän näkyvyys valtakunnallisessa mediassa tai
+       suoratoistopalvelussa: "Naisleijonat vahvasti edustettuna TV5:n ja
+       HBO Maxin syksyssä"
+     * Huippu-urheilun organisaatio- ja valmennuskeskusjärjestelyt, jotka eivät
+       kosketa harrastajapohjaa: "Olympiavalmennuskeskus Vuokatti-Ruka
+       käynnistää uuden yhteistyökauden"
+     * Yhden seuran hyvä käytäntö, jonka liitto nostaa esiin mallina — hyödyllinen
+       tiedoksi, mutta ei liittotason päätös eikä valmis rakenne kopioitavaksi:
+       "Juniore-KalPan rakentama urheilutoiminnan käsikirja"
 
    MATALA — kertoo vain, miten toinen liitto toimii. Hyvä tiedoksi, ei
    sovellettavaa golfiin.
@@ -333,9 +372,148 @@ Tee jokaiselle artikkelille:
      * Pienet käytännön työkalut, lomakkeet ja käyttökoulutukset
      * Vapaaehtois- ja koulutusohjelmat; yksittäiset talkookutsut POIS (portti B)
      * Rutiinikampanjat ja hinnoittelu: "syksyn seurajäsenmaksuale"
+     * Avoimet haut, apurahailmoitukset ja niiden määräajat
      * Liiton kannanotto yksittäiseen kv-asiaan: "kanta Infantinon jatkokauteen"
      * Tapahtuman isäntäpaikka tai brändiuudistus: "Kalevan kisat Porissa 2027"
      * Muu relevantiksi jäänyt arkijuttu
+6. themes: 0-3 kpl näistä, vain jos selvästi osuvat: {themes}
+
+PAKOLLINEN: palauta täsmälleen yksi objekti JOKAISTA syötteen riviä kohti, myös
+karsituista (relevant=false). Rivimäärä sisään = rivimäärä ulos. Älä jätä
+karsittuja rivejä pois vastauksesta äläkä yhdistä kahta riviä yhdeksi.
+
+Artikkelit:
+{articles}"""
+
+
+_PROMPT_MEDIA = """Olet Suomen Golfliiton VIESTINTÄPÄÄLLIKÖN mediaseurannan
+analyytikko. Saat suomalaisen median juttuja, jotka hakukone on poiminut
+golfiin liittyvillä hakusanoilla.
+
+Kysymys on tässä TOINEN kuin liittojen uutisissa. Niissä kysytään, voiko
+Golfliitto kopioida jonkin toisen organisaation mallin. Tässä kysytään:
+PUHUTAANKO MEIDÄN LAJISTAMME, ja pitääkö siihen reagoida? Kyse on
+julkisuuskuvasta, kotimaisen golfin toimintaedellytyksistä ja lajin
+näkyvyydestä suomalaisessa mediassa.
+
+TÄRKEÄ RAJOITE: käytössäsi on käytännössä VAIN OTSIKKO — hakukone ei anna
+ingressiä. Älä oleta jutun sisällöstä mitään, mitä otsikossa ei lue, äläkä
+keksi yksityiskohtia. Jos otsikosta ei näy golf-kytköstä, se ei ole peruste
+nostaa juttua.
+
+Perusperiaate: hakusana on laaja, joten joukossa on paljon juttuja, joissa golf
+vain vilahtaa tai jotka eivät ole uutisia lainkaan. Kohta 1 karsii ne kolmella
+portilla, kohta 5 asettaa lopuille tason. Kun epäröit, valitse alempi taso.
+
+Tee jokaiselle artikkelille:
+1. relevant — kolme porttia. Jos artikkeli osuu mihin tahansa niistä,
+   relevant=false. Tämä osio KARSII eikä ota kantaa tasoon.
+
+   PORTTI A — GOLF EI OLE JUTUN AIHE. Hakusana on osunut jutun sisään, mutta
+   juttu kertoo muusta: golfkenttä on vain tapahtuman sijainti, golf mainitaan
+   harrastuksena ohimennen, tai sana esiintyy tapahtumakalenterissa.
+   Testi: jos golf poistetaan jutusta, jääkö juttu pystyyn? Jos jää, POIS.
+   POIS esim: "Pohjalaisten sukujen kaukaiset alkuperät valottuvat pala
+   palalta – Tutkija raottaa, mitä on jo saatu selville", "Uusi
+   yhteisötapahtuma tuo tulishown ja trubaduurin Kuortaneenjärven rannalle",
+   "Talouselämä: Suomen kovatuloisin apteekkari löytyy Töysästä", "Kun tassut
+   väsyvät, matka jatkuu korissa – Arja ja Viivi ikääntyvät yhdessä Alavudella"
+
+   PORTTI B — EI OLE UUTINEN. Palstailmoitukset ja kaupankäynti: osake-,
+   osakkuus- ja varusteilmoitukset sekä osto- ja myynti-ilmoitukset.
+   Vedonlyönti- ja pelivihjeet. Ohjelmatiedot, lähetysaikataulut ja mainokset.
+   Vedonlyöntivihje karsiutuu MYÖS silloin, kun kilpailu on kotimainen: juttu
+   ei kerro kilpailusta vaan kertoimista.
+   POIS esim: "Myydään SHG A-osake", "TaylorMade Qi35 hybrid-3 17.5-20.5°",
+   "sairauden takia luovun tosiostajalle", "Golf-vihjeet: Vierumäki Finnish
+   Challenge | 20.–23.8.2026", "Golf-vihjeet: BMW Championship | torstaina
+   20.8. klo 17:00"
+
+   PORTTI C — ULKOMAINEN ILMAN KYTKÖSTÄ SUOMEEN. Ulkomaisen pelaajan arki,
+   mielipiteet ja kannanotot kilpailujärjestelyihin; ulkomaisten kenttien ja
+   lomakohteiden markkinointi sekä niiden rakennushankkeet.
+   Portti C EI sulje pois kahta asiaa: (a) kansainvälistä uutista, joka muuttaa
+   golfin rahavirtoja tai kilpailurakennetta, eikä (b) tapausta, joka nousee
+   laajaksi puheenaiheeksi golfin pelikulttuurista tai maineesta. Rajaus on
+   tarkka: perusteena on uutisen kantavuus koko lajille, EI se että pelaaja tai
+   henkilö on kuuluisa.
+   POIS esim: "Matt Fitzpatrick ei ymmärrä PGA Tourin pudotuspelien logiikkaa",
+   "Ho Tramiin valmistuu uusi 575 huoneen lomakeskus vuoden 2026 loppuun
+   mennessä"
+
+2. title_fi: otsikko sellaisenaan — jutut ovat jo suomeksi. Siivoa vain lopusta
+   lähdenimi ja tekniset lisäkkeet ("- Ilta-Sanomat", "| Telkku").
+3. summary_fi: 1–2 lausetta siitä, MIKSI tämä koskee Suomen golfia: mistä
+   puhutaan ja kenen kannalta. Kun käytössä on vain otsikko, tiivistä se
+   äläkä keksi yksityiskohtia.
+4. category: yksi näistä: {categories}
+5. priority — kolme tasoa, joista jokaisella on yksi kysymys. Kysy
+   järjestyksessä ja valitse ensimmäinen, johon vastaus on kyllä. Epäröidessä
+   valitse alempi.
+
+   KORKEA — pitääkö Golfliiton TEHDÄ tälle jotain: tiedottaa, reagoida,
+   varautua tai olla mukana? Juttu koskee Suomen golfia konkreettisesti, ja
+   kohteena on RAKENNE, PÄÄTÖS tai MAINE — ei pelisuoritus.
+     * Golfliiton oma päätös, järjestelmä, häiriö tai henkilövalinta, myös kun
+       sen julkaisee joku muu kuin liitto itse: "Tasoituskorjaukset
+       peliolosuhdelaskennan häiriöstä", "Valmennusryhmien valintaprosessi
+       käynnistynyt", "Golf.fi: Paragolfin liittovalmentajaksi valittu Rosa
+       Svahn"
+     * Kotimaisen kiertueen tai kilpailujärjestelmän muutos: "Muutos Finnish
+       Tourin kilpailukalenteriin"
+     * Kotimaisen golfkentän rakenteellinen uutinen: kaavoitus, investointi,
+       omistajanvaihdos, laajennus tai toiminnan loppuminen: "Kytäjä Resortin
+       alueelle suunnitellaan uutta hotellia ja loma-asuntoja – asemakaavan
+       laatiminen käynnistymässä"
+     * Kotimaiselle kentälle tai toimijalle myönnetty tunnustus, sertifikaatti
+       tai auditointitulos: "Ähtärin golfkenttä sai harvinaisen
+       ympäristösertifikaatin – vain 34 kentällä Suomessa"
+     * Lajin maine: häirintä, epäasiallinen kohtelu tai syrjintä, johon
+       Golfliitto voi joutua ottamaan kantaa
+
+   KESKITASO — puhutaanko lajistamme niin, että se pitää TIETÄÄ, vaikka mitään
+   ei tarvitse tehdä?
+     * Suomalaisen pelaajan menestys, paluu tai kisaennakko missä tahansa
+       kilpailussa: "Toista sijaa jakava Kalle Samooja palasi kansainväliseen
+       kilpagolfiin tyylillä", "Pulkkanen metsästää superviikkoa Vierumäellä",
+       "Golflupaus Julius Leipälä lähtee Oulun Barents Gamesiin
+       kotikenttäedulla"
+     * Suomessa järjestettävä kilpailu ja sen ennakko: "Kestääkö Tigerin
+       etumatka suomalaisten takaa-ajon Vierumäellä?", "Yllättäjä nappasi
+       maanantaikarsinnan voitolla paikan Vierumäki Finnish Challengeen",
+       "Sotilasurheilun SM-viikko lähestyy – jalkapalloa ja golfia pelataan
+       pääkaupunkiseudulla"
+     * Suomalaisen henkilökuva, jossa golf on kantava aihe: "Huipulta uuteen:
+       Tennis vei rovaniemeläisen Hannu Ylinenpään treenaamaan
+       Yhdysvaltoihin, mutta golfista tuli intohimo"
+     * Golfin näkyvyys ja puheenaiheet: tunnettu henkilö nostaa golfia esiin
+       tai golfista syntyy laaja kohu: "LeBron James avasi oman
+       YouTube-kanavansa – syynä golf", "Donald Trump huijaa härskisti?
+       Irvokkaat väitteet julki"
+
+   MATALA — hyvä TIEDOKSI, ei vaadi toimenpiteitä eikä koske Suomen golfia
+   suoraan.
+     * Kansainvälinen toimiala- ja rahoitusuutinen, joka ei kosketa Suomea
+       suoraan: "Saudi-Arabia käänsi rahahanat kiinni – miljardien
+       urheilusarja on romahtamassa"
+     * Pehmeä lukija-, tausta- tai mielipidejuttu golfista: "Millainen on
+       Suomen kaunein golfkenttä ensikertalaisen silmin?", "Golfmatkailussa
+       luottamus syntyy siitä, että joku tuntee kohteen oikeasti"
+     * Urheilutapahtuman yleinen taustajuttu, jossa golf on yksi laji muiden
+       joukossa: "Barents Summer Gamesin syvin olemus on jotain muuta kuin
+       pelkät voitot, mitalit, sekunnit"
+
+   Rajat on kirjattu vastakkainasetteluina — älä lue niitä erillisinä
+   sääntöinä:
+     Kotimaisen kentän kaava tai investointi = KORKEA
+       · kenttäesittely tai matkailujuttu = MATALA
+     Golfliiton oma päätös tai järjestelmä = KORKEA
+       · suomalaisen pelaajan menestys = KESKITASO
+     Kotimaisen kiertueen kalenterimuutos = KORKEA
+       · kansainvälinen rahavirtauutinen = MATALA
+     Lajin maine- tai häirintätapaus = KORKEA
+       · kansainvälinen golfkohu ilman suomalaiskytköstä = KESKITASO
+
 6. themes: 0-3 kpl näistä, vain jos selvästi osuvat: {themes}
 
 PAKOLLINEN: palauta täsmälleen yksi objekti JOKAISTA syötteen riviä kohti, myös
@@ -359,7 +537,8 @@ def _format_articles(batch: list[dict]) -> str:
 def _analyze_batch(client, batch: list[dict], tab: str) -> list[dict]:
     from google.genai import types
 
-    template = _PROMPT_SPORTS if tab == "urheilu_liitot" else _PROMPT_GOLF
+    template = {"urheilu_liitot": _PROMPT_SPORTS,
+                config.MEDIA_TAB: _PROMPT_MEDIA}.get(tab, _PROMPT_GOLF)
     prompt = template.format(
         categories=", ".join(config.CATEGORIES),
         themes=", ".join(config.THEMES),

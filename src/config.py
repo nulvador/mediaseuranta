@@ -49,13 +49,36 @@ BATCH_PAUSE_S = 5
 BATCH_RETRIES = 2           # yritystä per erä; epäonnistunut erä jää 'new'-tilaan -> uusi yritys seuraavassa ajossa
 
 # --- Raportti ---
-# Artikkeli näkyy raportissa 5 päivää julkaisustaan (tai havaitsemisestaan,
-# jos julkaisupäivää ei tiedetä). Tätä vanhemmat poistuvat näkyvistä eikä
-# niitä analysoida lainkaan — säästää Gemini-kutsuja.
-REPORT_DAYS = int(os.environ.get("REPORT_DAYS", "5"))
+# Artikkeli näkyy katsauksessa 7 päivää julkaisustaan (tai havaitsemisestaan,
+# jos julkaisupäivää ei tiedetä). Tätä vanhemmat poistuvat näkyvistä.
+REPORT_DAYS = int(os.environ.get("REPORT_DAYS", "7"))
+# Analyysi-ikkuna on tarkoituksella katsausikkunaa LYHYEMPI: yli 5 pv vanhoja
+# ei analysoida lainkaan, koska Gemini-kutsut kuuluvat tuoreille uutisille.
+# Näkyvyyden pidentäminen ei siis lisää yhtään kutsua — 6-7 pv vanha juttu
+# näkyy sillä arviolla, joka sille tehtiin tuoreena.
+#
+# ÄLÄ yhdistä näitä takaisin yhdeksi vakioksi. REPORT_DAYS ohjasi ennen myös
+# analyysiä, joten näkyvyyden pidentäminen olisi samalla laajentanut
+# analysoitavien joukkoa — juuri se kalleinta mitä tässä voi tehdä.
+ANALYZE_DAYS = int(os.environ.get("ANALYZE_DAYS", "5"))
+# Raakalista ("kaikki löydetyt") elää raporttinäkymää pidempään: se on
+# varmistus sille, ettei suodatus ole pudottanut jotain olennaista, joten
+# viikko antaa aikaa palata edellisen ajon satoon.
+RAW_DAYS = int(os.environ.get("RAW_DAYS", "7"))
 # Kannassa hasheja pidetään pidempään, jotta dedup toimii eivätkä vanhat
 # uutiset palaa raporttiin uusina.
 RETENTION_DAYS = int(os.environ.get("RETENTION_DAYS", "90"))
+
+# --- Suomalainen media (oma välilehti) ---
+# Media-välilehti käyttää TÄSMÄLLEEN samoja ikkunoita kuin muut välilehdet:
+# LOOKBACK_DAYS keruussa, ANALYZE_DAYS analyysissä, REPORT_DAYS näkyvyydessä,
+# RAW_DAYS raakalistassa. Erillisiä MEDIA_DAYS-/MEDIA_LOOKBACK_DAYS-vakioita ei
+# ole, eikä niitä pidä palauttaa: ne tekivät storesta haarautuvan (CASE WHEN tab)
+# ilman että kukaan hyötyi pidemmästä ikkunasta.
+#
+# Vakio on jäljellä vain siksi, että media tarvitsee oman promptin, oman
+# dedup-avaimen (otsikko ilman lähdettä) ja oman saatetekstin raportissa.
+MEDIA_TAB = "media"
 
 # --- Sähköposti (valinnainen; jos SMTP_HOST puuttuu, ohitetaan) ---
 SMTP_HOST = os.environ.get("SMTP_HOST", "")

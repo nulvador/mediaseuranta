@@ -71,14 +71,21 @@ def title_key(article: dict) -> str:
     katkaisu yhdistäisi myös aidosti eri juttuja, joilla on sama alku.
     Avain on lähdekohtainen — kahden eri liiton uutinen samasta asiasta on
     kaksi eri juttua, ja niistä promptti valitsee yhden relevantiksi.
+
+    POIKKEUS: media-välilehti. Siellä sama STT-/uutistoimistojuttu ilmestyy
+    sellaisenaan Iltalehteen, Ilta-Sanomiin ja HS:ään, ja sama juttu osuu usein
+    myös kahteen eri hakusanaan. Lähdekohtainen avain päästäisi ne kaikki läpi
+    erillisinä riveinä. Siksi media-välilehdellä avain lasketaan PELKÄSTÄ
+    otsikosta: siellä sama otsikko tarkoittaa aina samaa juttua, koska
+    "lähde" ei ole julkaisija vaan hakulause.
     """
     title = (article.get("title") or "").casefold()
     title = re.sub(r"[^\w\s]", " ", title)
     title = re.sub(r"\s+", " ", title).strip()
     if not title:
         return ""
-    return hashlib.md5(
-        f"{article.get('source_id', '')}|{title}".encode("utf-8")).hexdigest()
+    scope = "" if article.get("tab") == config.MEDIA_TAB else article.get("source_id", "")
+    return hashlib.md5(f"{scope}|{title}".encode("utf-8")).hexdigest()
 
 
 def connect(db_path: Path = None) -> sqlite3.Connection:
@@ -145,10 +152,12 @@ def _cutoff(days: int) -> str:
 
 
 def expire_old_pending(conn: sqlite3.Connection, days: int) -> int:
-    """Merkitse raportti-ikkunaa vanhemmat analysoimattomat 'expired'-tilaan.
+    """Merkitse analyysi-ikkunaa vanhemmat analysoimattomat 'expired'-tilaan.
 
     Näitä ei näytetä eikä analysoida — säästää Gemini-kutsut tuoreille
-    uutisille."""
+    uutisille.
+
+    Sama ikkuna kaikilla välilehdillä, media mukaan lukien."""
     cur = conn.execute(
         f"UPDATE articles SET status='expired' "
         f"WHERE status IN ('new','stale') AND {_EFF_DATE} < ?", (_cutoff(days),))
@@ -158,13 +167,18 @@ def expire_old_pending(conn: sqlite3.Connection, days: int) -> int:
 
 def pending_articles(conn: sqlite3.Connection) -> list[dict]:
     # 'new' = ei koskaan analysoitu, 'stale' = analysoitu mutta prompti muuttunut.
-    # Vain raportti-ikkunan sisällä olevat: vanhempia ei kannata analysoida.
+    # Vain ANALYZE_DAYS-ikkunan sisällä olevat: vanhempia ei kannata analysoida.
+    # Huom. ikkuna on lyhyempi kuin katsauksen (REPORT_DAYS), eli katsauksessa
+    # voi näkyä juttuja joita ei enää analysoida uudelleen. Sama kaikilla
+    # välilehdillä, media mukaan lukien.
+    # Huom. ikkuna on lyhyempi kuin katsauksen (REPORT_DAYS), eli katsauksessa
+    # voi näkyä juttuja joita ei enää analysoida uudelleen.
     # Uudet ensin (tuoreimmat), sitten uudelleenarvioitavat.
     rows = conn.execute(
         f"SELECT * FROM articles WHERE status IN ('new','stale') "
         f"AND {_EFF_DATE} >= ? "
         f"ORDER BY CASE status WHEN 'new' THEN 0 ELSE 1 END, {_EFF_DATE} DESC, id",
-        (_cutoff(config.REPORT_DAYS),),
+        (_cutoff(config.ANALYZE_DAYS),),
     ).fetchall()
     return [dict(r) for r in rows]
 
@@ -202,6 +216,29 @@ def report_articles(conn: sqlite3.Connection, days: int) -> list[dict]:
             d["themes"] = []
         out.append(d)
     return out
+
+
+def raw_articles(conn: sqlite3.Connection, days: int) -> list[dict]:
+    """Kaikki löydetyt jutut raakalistaa varten — myös karsitut ja analysoimattomat.
+
+    Raportti näyttää vain sen, minkä prompti päästi läpi. Raakalista näyttää
+    mitä lähteistä ylipäänsä tuli, ilman priorisointia ja käännöksiä: näin
+    suodatuksen ohi mennyt juttu on yhä löydettävissä. Statukset ovat mukana
+    vain sen merkitsemiseen, mikä on jo katsauksessa.
+
+    Kentät pidetään suppeina, koska koko lista upotetaan HTML-tiedostoon.
+
+    Sama ikkuna kaikilla välilehdillä, media mukaan lukien.
+    """
+    rows = conn.execute(
+        f"""SELECT source_name, country, tab, title, url, status, published,
+                   {_EFF_DATE} AS eff_date
+           FROM articles
+           WHERE {_EFF_DATE} >= ?
+           ORDER BY eff_date DESC, source_name COLLATE NOCASE, id DESC""",
+        (_cutoff(days),),
+    ).fetchall()
+    return [dict(r) for r in rows]
 
 
 def last_run_finished_at(conn: sqlite3.Connection) -> str | None:
@@ -259,11 +296,13 @@ def reset_analysis(conn: sqlite3.Connection, tab: str = None,
     irrelevant -> new: arvioidaan uudelleen (ei näy ennen sitä).
     tab: jos annettu, vain kyseinen välilehti (säästää Gemini-kutsuja).
 
-    Rajaus raportti-ikkunaan on tarkoituksellinen: pending_articles ei
+    Rajaus ANALYZE_DAYS-ikkunaan on tarkoituksellinen: pending_articles ei
     kuitenkaan poimi ikkunan ulkopuolisia, joten niiden merkitseminen ei
     tuottaisi uutta arviota — se vain veisi ne expire_old_pending-kierroksella
-    'expired'-tilaan ja hukkaisi vanhan arvion turhaan."""
-    cutoff = _cutoff(days if days is not None else config.REPORT_DAYS)
+    'expired'-tilaan ja hukkaisi vanhan arvion turhaan. Ikkuna on siksi
+    analyysi-, ei katsausikkuna: 6-7 pv vanhaa katsauksen juttua ei voi
+    uudelleenanalysoida, ja sen merkitseminen vain tuhoaisi vanhan arvion."""
+    cutoff = _cutoff(days if days is not None else config.ANALYZE_DAYS)
     where = f" AND {_EFF_DATE} >= ?"
     params: tuple = (cutoff,)
     if tab:

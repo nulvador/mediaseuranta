@@ -42,7 +42,7 @@ def main() -> int:
     parser.add_argument("--reanalyze", nargs="?", const="all", metavar="TAB",
                         help="analysoi raportti-ikkunan artikkelit uudelleen "
                              "(promptin muututtua). Valinnainen välilehti: "
-                             "golfliitot | urheilu_liitot")
+                             "golfliitot | urheilu_liitot | media")
     parser.add_argument("--purge", metavar="SOURCE_ID", action="append",
                         help="poista lähteen kaikki artikkelit ennen keruuta (voi toistaa)")
     parser.add_argument("--dedupe", action="store_true",
@@ -87,8 +87,8 @@ def main() -> int:
         tab = None if args.reanalyze == "all" else args.reanalyze
         n = store.reset_analysis(conn, tab)
         log.info("Uudelleenanalyysi%s: %d artikkelia palautettu jonoon "
-                 "(raportti-ikkuna %d pv)",
-                 f" ({tab})" if tab else "", n, config.REPORT_DAYS)
+                 "(analyysi-ikkuna %d pv)",
+                 f" ({tab})" if tab else "", n, config.ANALYZE_DAYS)
 
     healths: list[dict] = []
     new_count = 0
@@ -108,19 +108,31 @@ def main() -> int:
         new_count = store.insert_new(conn, articles)   # checkpoint: raakadata talteen heti
         log.info("Kerätty %d artikkelia, joista uusia %d", len(articles), new_count)
 
-        dead = [h for h in healths if h["count"] == 0]
+        media_n = sum(h["count"] for h in healths if h["tab"] == config.MEDIA_TAB)
+        if media_n:
+            log.info("Suomalainen media: %d osumaa", media_n)
+
+        # Media-hakujen nollatulos on normaali, ei vika: nimihaku osuu harvoin.
+        # Liittolähteen nolla sen sijaan kannattaa aina tarkistaa.
+        dead = [h for h in healths
+                if h["count"] == 0 and h["tab"] != config.MEDIA_TAB]
         if dead:
             log.warning("LÄHTEET ILMAN ARTIKKELEITA (%d): %s",
                         len(dead), ", ".join(h["source_id"] for h in dead))
+        quiet = [h for h in healths
+                 if h["count"] == 0 and h["tab"] == config.MEDIA_TAB]
+        if quiet:
+            log.info("Mediahakuja ilman osumia (%d): %s",
+                     len(quiet), ", ".join(h["source_id"] for h in quiet))
 
     # ── Vaihe 2: analyysi (jatkaa myös edellisen ajon kesken jääneitä) ─
     analyzed = failed = 0
     if not args.report_only and not args.skip_analysis:
         # Vanhentuneita ei analysoida — kutsut säästyvät tuoreille uutisille
-        expired = store.expire_old_pending(conn, config.REPORT_DAYS)
+        expired = store.expire_old_pending(conn, config.ANALYZE_DAYS)
         if expired:
             log.info("Vanhentunut jonosta: %d artikkelia (yli %d pv vanhoja)",
-                     expired, config.REPORT_DAYS)
+                     expired, config.ANALYZE_DAYS)
 
         pending = store.pending_articles(conn)
         if pending:
@@ -144,8 +156,14 @@ def main() -> int:
     run_summary = {"new_articles": new_count, "analyzed": analyzed,
                    "previous_run_at": previous_run_at}
     report_arts = store.report_articles(conn, config.REPORT_DAYS)
-    path = write_report(report_arts, healths, run_summary)
-    log.info("Raportti: %s (%d artikkelia)", path, len(report_arts))
+    # Raakalista näyttää myös karsitut ja analysoimattomat, joten se on
+    # varmistus suodatusta vasten. Ikkuna on nyt sama kuin katsauksen, eli
+    # katsauksesta pudonnut juttu ei jää raakalistallekaan roikkumaan.
+    raw_arts = store.raw_articles(conn, config.RAW_DAYS)
+    media_arts = sum(1 for a in report_arts if a["tab"] == config.MEDIA_TAB)
+    path = write_report(report_arts, healths, run_summary, raw_arts)
+    log.info("Raportti: %s (%d artikkelia, joista mediaa %d; raakalistalla %d)",
+             path, len(report_arts), media_arts, len(raw_arts))
 
     # ── Vaihe 4: sähköposti (valinnainen) ─────────────────────────────
     if not args.no_email:

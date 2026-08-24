@@ -10,7 +10,8 @@ from . import config
 PRIO_EMOJI = {"korkea": "🔴", "keskitaso": "🟡", "matala": "🟢"}
 
 
-def generate_report(articles: list[dict], healths: list[dict], run_summary: dict) -> str:
+def generate_report(articles: list[dict], healths: list[dict], run_summary: dict,
+                    raw: list[dict] = None) -> str:
     today = datetime.date.today().strftime("%d.%m.%Y")
     previous_run_at = run_summary.get("previous_run_at")
     for a in articles:
@@ -27,6 +28,7 @@ def generate_report(articles: list[dict], healths: list[dict], run_summary: dict
             pass
 
     data_json = json.dumps(articles, ensure_ascii=False).replace("</", "<\\/")
+    raw_json = json.dumps(raw or [], ensure_ascii=False).replace("</", "<\\/")
     health_json = json.dumps(healths, ensure_ascii=False).replace("</", "<\\/")
     themes_json = json.dumps(config.THEMES, ensure_ascii=False)
 
@@ -131,6 +133,21 @@ table {{ width:100%; border-collapse:collapse; font-size:.78rem; margin-top:12px
 th {{ text-align:left; color:var(--sg-racing-green); }}
 th, td {{ padding:6px 8px; border-bottom:1px solid var(--sg-grey-200); }}
 .err {{ color:var(--prio-korkea); }}
+details + details {{ margin-top:14px; }}
+.note {{ font-size:.75rem; line-height:1.55; margin:10px 0 0; opacity:.85; }}
+.scroll {{ max-height:60vh; overflow:auto; margin-top:4px; }}
+.scroll thead th {{ position:sticky; top:0; background:var(--sg-white); }}
+td.nowrap {{ white-space:nowrap; font-variant-numeric:tabular-nums; }}
+#raw a {{ color:var(--sg-racing-green); text-decoration:none; }}
+#raw a:hover {{ text-decoration:underline; }}
+.in-report {{ display:inline-block; background:var(--sg-light-green);
+  color:var(--sg-racing-green); font-size:.62rem; font-weight:700;
+  padding:2px 8px; border-radius:999px; margin-left:8px; white-space:nowrap; }}
+/* Media-välilehti näyttää saman priorisoidun korttinäkymän kuin muut; vain
+   saateteksti vaihtuu, koska ikkuna ja lähdelogiikka ovat eri. */
+#mediaIntro {{ display:none; }}
+body.media-mode #mediaIntro {{ display:block; }}
+body.media-mode #rawIntro {{ display:none; }}
 footer {{ background:var(--sg-racing-green); color:var(--sg-light-green);
   text-align:center; font-size:.75rem; padding:26px 16px; margin-top:44px; }}
 footer strong {{ color:var(--sg-white); text-transform:uppercase; letter-spacing:.04em; }}
@@ -150,6 +167,7 @@ footer .tag-line {{ color:var(--sg-green); font-weight:700; margin-top:4px; }}
   <div class="tabs">
     <button data-tab="golfliitot" class="active">Golfliitot maailmalla</button>
     <button data-tab="urheilu_liitot">Suomalaiset lajiliitot</button>
+    <button data-tab="media">Suomalainen media</button>
   </div>
   <div class="filters">
     <select id="prio">
@@ -166,8 +184,27 @@ footer .tag-line {{ color:var(--sg-green); font-weight:700; margin-top:4px; }}
 </div></div>
 
 <main>
+  <p class="note" id="mediaIntro">Suomalaisen median golf-osumat viimeisten
+    {config.REPORT_DAYS} päivän ajalta — kansallisia ja maakuntalehtiä, ei liiton omia kanavia.
+    Kysymys on tässä eri kuin liittovälilehdillä: <em>puhutaanko meistä, ja pitääkö
+    reagoida?</em> 🔴 koskee Suomen golfin rakennetta, päätöstä tai mainetta ·
+    🟡 suomalainen pelaaja, kotimainen kilpailu tai lajin näkyvyys · 🟢 hyvä tietää.
+    Karsitut jutut näkyvät alla "kaikki löydetyt" -listassa.</p>
   <div class="count" id="count"></div>
   <div id="list"></div>
+
+  <details id="rawBox">
+    <summary>Näytä kaikki löydetyt uutiset (<span id="rawCount">0</span>)</summary>
+    <p class="note" id="rawIntro">Suodattamaton lista siitä, mitä lähteet ovat julkaisseet
+      viimeisten {config.RAW_DAYS} päivän aikana — myös katsauksen ulkopuolelle karsitut. Ei
+      priorisointia eikä käännöksiä: otsikot alkukielellä. Lista noudattaa valittua
+      välilehteä ja hakukenttää.</p>
+    <div class="scroll">
+    <table><thead><tr><th>Pvm</th><th>Lähde</th><th>Otsikko</th></tr></thead>
+    <tbody id="raw"></tbody></table>
+    </div>
+    <p class="note">* päivämäärä ei ollut tiedossa — näytetään havaitsemispäivä.</p>
+  </details>
 
   <details>
     <summary>Lähteiden tila viimeisimmässä ajossa</summary>
@@ -185,6 +222,7 @@ footer .tag-line {{ color:var(--sg-green); font-weight:700; margin-top:4px; }}
 <script>
 const ARTICLES = {data_json};
 const HEALTH = {health_json};
+const RAW = {raw_json};
 const THEMES = {themes_json};
 const PRIO_ORDER = {{korkea:0, keskitaso:1, matala:2}};
 let tab = "golfliitot";
@@ -226,6 +264,8 @@ function thumb(a) {{
 }}
 
 function render() {{
+  // Media-välilehti renderöityy kuten muut; luokka vaihtaa vain saatetekstin.
+  document.body.classList.toggle("media-mode", tab === "media");
   const q = $("search").value.toLowerCase();
   const prio = $("prio").value, theme = $("theme").value, country = $("country").value;
   const onlyNew = $("onlyNew").checked;
@@ -259,6 +299,23 @@ function render() {{
     </div>`).join("") || "<p>Ei artikkeleita valituilla suodattimilla.</p>";
 }}
 
+function renderRaw() {{
+  // Raakalista on tarkoituksella karu: päivä, lähde, otsikko alkukielellä.
+  // Sen tehtävä on näyttää mitä suodatuksesta jäi pois, ei arvottaa mitään.
+  const q = $("search").value.toLowerCase();
+  const items = RAW.filter(a => a.tab === tab
+    && (!q || (a.title||"").toLowerCase().includes(q)));
+  $("rawCount").textContent = items.length;
+  $("raw").innerHTML = items.map(a => `
+    <tr>
+      <td class="nowrap">${{esc(a.eff_date||"")}}${{a.published ? "" : "*"}}</td>
+      <td class="nowrap">${{esc(a.source_name)}}</td>
+      <td><a href="${{esc(a.url||"#")}}" target="_blank" rel="noopener">${{esc(a.title)}}</a>${{
+        (a.status === "analyzed" || a.status === "stale") && a.tab !== "media"
+          ? '<span class="in-report">katsauksessa</span>' : ""}}</td>
+    </tr>`).join("") || '<tr><td colspan="3">Ei löydettyjä uutisia.</td></tr>';
+}}
+
 function renderHealth() {{
   $("health").innerHTML = HEALTH.map(h => `
     <tr><td>${{esc(h.source_name)}}</td><td>${{esc(h.method||"—")}}</td>
@@ -267,18 +324,19 @@ function renderHealth() {{
 
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {{
   document.querySelectorAll(".tabs button").forEach(x => x.classList.remove("active"));
-  b.classList.add("active"); tab = b.dataset.tab; render();
+  b.classList.add("active"); tab = b.dataset.tab; render(); renderRaw();
 }});
 ["prio","theme","country","onlyNew"].forEach(id => $(id).onchange = render);
-$("search").oninput = render;
+$("search").oninput = () => {{ render(); renderRaw(); }};
 
-initFilters(); render(); renderHealth();
+initFilters(); render(); renderRaw(); renderHealth();
 </script>
 </body></html>"""
 
 
-def write_report(articles: list[dict], healths: list[dict], run_summary: dict) -> str:
-    html = generate_report(articles, healths, run_summary)
+def write_report(articles: list[dict], healths: list[dict], run_summary: dict,
+                 raw: list[dict] = None) -> str:
+    html = generate_report(articles, healths, run_summary, raw)
     tmp = config.REPORT_PATH.with_suffix(".html.tmp")
     tmp.write_text(html, encoding="utf-8")
     tmp.replace(config.REPORT_PATH)   # atominen kirjoitus

@@ -36,6 +36,14 @@ BATCH_SIZE (50). Kiintiö nollautuu n. klo 10 Suomen aikaa.
 Keskeinen periaate: **raportti ei saa koskaan tyhjentyä**. Siksi
 uudelleenanalyysi merkitsee `stale` (näkyy yhä) eikä `new` (katoaisi).
 
+**Raakalista ("Näytä kaikki löydetyt uutiset")** on raportin lopussa napin
+takana ja näyttää *kaikki* kerätyt jutut statuksesta riippumatta — myös
+`irrelevant`- ja `expired`-tilaiset. Ilman sitä karsittu juttu katosi
+näkyvistä kokonaan eikä suodatusta voinut tarkistaa. Lista on tarkoituksella
+karu (päivä, lähde, otsikko alkukielellä): ei prioriteettia, ei käännöstä, ei
+Gemini-kutsuja. Se noudattaa valittua välilehteä ja hakukenttää, ja merkitsee
+"katsauksessa" ne jutut jotka näkyvät jo yläpuolella.
+
 Malli jättää joskus rivejä kokonaan pois vastauksesta — tyypillisesti niitä,
 jotka se karsisi portissa A. Ne jäävät `new`-tilaan ja lähtevät uudelleen
 seuraavassa ajossa. Promptin loppu vaatii nyt yhden objektin joka riviä kohti,
@@ -70,10 +78,39 @@ tarkista ensin `title_key`-törmäys — älä oleta lähdettä rikkinäiseksi.
 
 ## Ikäsäännöt
 
-- **Näkyvyys 5 päivää** (`REPORT_DAYS`) artikkelin julkaisusta — tai
-  havaitsemisesta, jos julkaisupäivää ei tiedetä. Tätä vanhemmat poistuvat.
-- Yli 5 pv vanhoja **ei analysoida** lainkaan (`expire_old_pending`).
-- `RETENTION_DAYS` (90) pitää dedup-historian, jottei vanha uutinen palaa uutena.
+Kolme ikkunaa, kaikki artikkelin julkaisusta — tai havaitsemisesta, jos
+julkaisupäivää ei tiedetä (`_EFF_DATE`):
+
+| vakio | pv | ohjaa |
+|---|---|---|
+| `ANALYZE_DAYS` | 5 | mitä analysoidaan (`pending_articles`, `expire_old_pending`, `reset_analysis`) |
+| `REPORT_DAYS` | 7 | mitä näkyy katsauksessa (`report_articles`) |
+| `RAW_DAYS` | 7 | mitä näkyy raakalistassa (`raw_articles`) |
+| `RETENTION_DAYS` | 90 | dedup-historia, jottei vanha uutinen palaa uutena |
+
+**Analyysi-ikkuna on lyhyempi kuin katsausikkuna, eikä niitä saa yhdistää.**
+`REPORT_DAYS` ohjasi 8/2026 asti myös analyysiä, joten näkyvyyden pidentäminen
+olisi samalla laajentanut analysoitavien joukkoa — kalleinta mitä tässä voi
+tehdä. Nyt näkyvyyttä voi venyttää ilman yhtään lisäkutsua: 6–7 pv vanha juttu
+näkyy sillä arviolla, joka sille tehtiin tuoreena.
+
+Seuraus, joka pitää muistaa: **katsauksessa on juttuja, joita ei enää voi
+uudelleenanalysoida.** `--reanalyze` rajaa `ANALYZE_DAYS`-ikkunaan, joten 6–7 pv
+vanhan jutun arvio jää vanhalla promptilla tehdyksi kunnes se poistuu näkyvistä.
+Tämä on tarkoituksellista: merkitseminen ei tuottaisi uutta arviota, vain
+hukkaisi vanhan `expired`-tilaan.
+
+Miksi 7 eikä 5 (20.8.2026): Golf Irelandin 6 M€ infrastruktuuriohjelma oli
+oikein `korkea`, mutta putosi katsauksesta kahden raportin jälkeen puhtaasti
+ikäsäännön takia. Kahdella ajolla viikossa 5 pv jättää kärkijutulle liian vähän
+näkyvyyttä. Hinta: katsaus on pidempi ja samat kärkijutut toistuvat useammassa
+peräkkäisessä raportissa.
+
+Raakalista ei ole enää katsausta pidempi. Alkuperäinen perustelu (karsittuihin
+juttuihin pitää ehtiä palata edellisen ajon jälkeen) täyttyy silti: 7 pv kattaa
+ti+pe-rytmin 3–4 pv välin. Jos katsausikkunaa kasvatetaan vielä, kasvata
+`RAW_DAYS` mukana — raakalista on suodatuksen tarkistusväline, joten se ei saa
+loppua ennen katsausta.
 
 ## Priorisointisäännöt (src/analyze.py)
 
@@ -214,6 +251,60 @@ talkookutsut sen sijaan karsiutuvat portissa B) · rutiinikampanjat ja
 hinnoittelu · liiton kannanotto yksittäiseen kv-asiaan · kevyet henkilö- ja
 taustajutut · kumppanien luettelointi · muu relevantiksi jäänyt arkijuttu.
 
+### Lajiliitoilla korkea vaatii testilauseen (kalibrointi 8/2026)
+
+Punainen oli lajiliitoilla magneetti: 14.8. ajossa jakauma oli **12 punaista,
+0 keltaista, 7 vihreää** — keskitaso jäi kokonaan käyttämättä ja punaiseen
+päätyi TV-näkyvyystiedote ja leirin jälkiraportti. Syy oli luettelomainen
+punainen: kymmenen kohtaa, joista malli löysi aina jonkin osuman.
+
+Korjaus ei ollut uusi luetelmakohta vaan **testilause kohdan 5 alussa**:
+kirjoita mielessäsi "Golfliitto voisi tehdä saman: ___". Jos lause vaatii
+venytystä tai jää yleiseksi ("saisi lisää näkyvyyttä", "hyvä esimerkki
+muille"), taso on keltainen. Lisäksi promptissa lukee, että **korkea on
+harvinainen**.
+
+Rajat on kirjattu vastakkainasetteluina, ei erillisinä sääntöinä:
+
+| Punainen | Keltainen tai vihreä |
+|---|---|
+| Tehty rahoituspäätös | Avoin hakuilmoitus ja määräaika (vihreä) |
+| Julkaistu tutkimus tai mitattu luku | Kyselyn tai selvityksen käynnistäminen |
+| Digipalvelu, jolle on golfvastine | Oman lajin erityispiirteeseen sidottu järjestelmä |
+| Harrastajahankintamalli tuloksineen | Yhden tapahtuman onnistuminen |
+| Liittotason päätös | Yhden seuran hyvä käytäntö, jonka liitto nostaa esiin |
+
+Huippu-urheilun valmennuskeskus- ja organisaatiojärjestelyt ovat keltaisia:
+ne eivät kosketa harrastajapohjaa, josta golf on kiinnostunut.
+
+Kuiva-ajo samalla 61 artikkelin aineistolla: **10 punaista → 3**, keskitaso
+otettiin käyttöön (5), ja portti B alkoi purra myös koulutustarjontaan, joka
+oli vuotanut vihreään. Jäljelle jääneet punaiset olivat Minimäkikiertue,
+Apollo Sports -kumppanuus ja Ikiliike-pilotit — kaikissa on käyttöön otettu
+malli ja tulokset.
+
+### Portti B:n näkyvyyspoikkeus
+
+Näkyvyys- ja kohderyhmäuutiset (naisurheilun pääsy suoratoistopalveluihin,
+tyttöjunioreiden leiri) kuuluvat viestintäpäällikölle **keltaisina**, vaikka ne
+muuten olisivat portti B:n tapahtumaviestintää. Siksi portissa B on poikkeus:
+se ei sulje pois juttua, joka kertoo lajin pääsystä valtakunnalliseen mediaan
+tai kaupalliseen suoratoistopalveluun, tai aliedustetun kohderyhmän
+tavoittamisesta uutena harrastajajoukkona.
+
+Poikkeus vuoti kahdesti kuiva-ajossa, ja molemmat rajaukset ovat pakollisia:
+
+1. **Liiton oma kanava ei ole valtakunnallista mediaa.** Ilman rajausta
+   "Huipputurnaukset jatkuvat SalibandyTV:ssä – katso myös älytelevisiosta"
+   nousi keltaiseksi. Kyse on katsomiskehotuksesta, ei mediasopimuksesta.
+2. **Poikkeus ei ohita porttia A.** Ilman rajausta "Nämä pelaajat kutsuttiin
+   Naisleijonien testileirille" nousi keltaiseksi — sana "naiset" riitti
+   ohittamaan koko kilpailusuoritusportin.
+
+Yleisempi oppi: portin poikkeus periytyy herkästi muihin portteihin, ja
+kohderyhmäsana ("naiset", "tytöt") on mallille vahva nostosignaali. Kirjoita
+poikkeuksen rajat auki heti, älä vasta kun vuoto näkyy.
+
 ### Inkluusio kulkee kaikkien kolmen tason läpi
 
 Tämä on setin hankalin raja, joten se on kirjattu erikseen: käyttöön otettu
@@ -245,8 +336,8 @@ src/config.py      polut, .env, vakiot
 src/sources.py     YAML-lataus, Google News -lokaalit per kieli
 src/fetch.py       rinnakkainen keruu, 15 s timeout, alidomain-suodatus
 src/store.py       SQLite: dedup, statukset, ikäsäännöt, migraatiot
-src/analyze.py     Gemini structured output, erä-checkpointit, kiintiösulake
-src/report.py      HTML-raportti (Suomi Golf -brändi, Racing Green, Montserrat)
+src/analyze.py     Gemini structured output; 3 promptia (golf/lajiliitot/media)
+src/report.py      HTML-raportti (3 välilehteä; media on oma näkymänsä)
 src/encrypt.py     AES-GCM-salaus web-julkaisuun
 src/emailer.py     valinnainen SMTP (odottaa tunnuksia)
 src/main.py        pääohjelma
@@ -294,6 +385,154 @@ deploy/            launchd-ajastus (ti + pe klo 10:15)
 - **Nollalähde ei ole aina rikki.** Erottele: "N liian vanhaa" = lähde toimii,
   julkaisee harvoin (esim. STERF, SGF, OKM). "muun median juttua" tai
   "puutteellista" = reitti on väärä ja se kannattaa korjata.
+
+## Media-välilehti (suomalainen media)
+
+Kolmas välilehti: suomalaisen median golf-osumat, oma prompti
+(`_PROMPT_MEDIA`), kerätty hakusanoilla eikä lähdelistalla.
+
+**Ikkunat ovat samat kuin muilla välilehdillä** — `ANALYZE_DAYS` 5,
+`REPORT_DAYS` 7, `RAW_DAYS` 7. Erillisiä `MEDIA_DAYS`-vakioita EI ole, eikä
+niitä pidä palauttaa: ne haaruttivat storen (`CASE WHEN tab = 'media'`) neljässä
+funktiossa ilman että kukaan hyötyi pidemmästä ikkunasta. Testi
+`test_media_uses_the_same_windows_as_other_tabs` lukitsee tämän.
+
+Median erityispiirteitä on siis enää kolme: oma prompti, oma dedup-avain
+(otsikko ilman lähdettä) ja oma saateteksti raportissa.
+
+**Kysymys on tässä toinen kuin liittovälilehdillä.** Siellä kysytään *"voiko
+Golfliitto kopioida tämän mallin"*. Medialla kysytään **"puhutaanko meistä, ja
+pitääkö reagoida"** — julkisuuskuva, kotimaisen golfin toimintaedellytykset,
+lajin näkyvyys. Älä yritä yhdistää näitä yhdeksi promptiksi.
+
+| taso | media | vrt. liitot |
+|---|---|---|
+| korkea | Suomen golfin **rakenne, päätös tai maine**: liiton päätös tai järjestelmähäiriö, kotimaisen kentän kaavoitus tai sertifiointi, kotimaisen kiertueen kalenterimuutos, häirintätapaus | "voiko kopioida" |
+| keskitaso | suomalainen pelaaja, kotimainen kilpailu, lajin näkyvyys ja kohut | "pitääkö tietää" |
+| matala | kansainvälinen toimialauutinen, pehmeä lukijajuttu | "miten toinen liitto toimii" |
+
+Portit ovat myös eri: **A** = golf ei ole jutun aihe (hakusana osui tekstin
+sisään), **B** = ei ole uutinen (palstailmoitus, vedonlyöntivihje, ohjelmatieto),
+**C** = ulkomainen ilman kytköstä Suomeen.
+
+Kaksi rajaa, jotka on kirjoitettava auki tai ne vuotavat:
+- **Vedonlyöntivihje karsiutuu, vaikka kilpailu olisi kotimainen** — juttu ei
+  kerro kilpailusta vaan kertoimista ("Golf-vihjeet: Vierumäki Finnish
+  Challenge").
+- **Ulkomaisuus ei yksin karsi.** Portti C päästää läpi uutisen, joka muuttaa
+  golfin rahavirtoja (LIV/Saudi = matala) tai nousee laajaksi puheenaiheeksi
+  pelikulttuurista (Trump = keskitaso). Perusteena on uutisen kantavuus koko
+  lajille, EI henkilön kuuluisuus — ilman tätä rajausta jokainen tunnetun
+  pelaajan juttu nousisi.
+
+### Kalibrointi 8/2026: 32/33 viestintäpäällikön omaa luokittelua vasten
+
+Prompti kirjoitettiin 33 käsin luokitellusta jutusta ja kuiva-ajettiin samalla
+aineistolla. Ainoa ero oli juttu, jonka otsikossa ei lue sanaakaan golfista
+("Tämä mainos poistettiin alta aikayksikön: naista kohdeltiin törkeästi
+kameroiden edessä"). **Sitä ei saa lisätä korkean esimerkkilistaan** — se
+opettaisi mallille, että golfiton otsikko voi olla korkea, ja rikkoisi portti
+A:n kokonaan. Juttu näkyy joka tapauksessa raakalistassa.
+
+Muista: 32/33 mittaa johdonmukaisuutta, ei yleistyskykyä, koska esimerkit ovat
+samasta aineistosta. Oikea koe on seuraava erä.
+
+### Vain otsikko käytettävissä
+
+Google News **ei anna ingressiä**: 71/81 media-jutussa `summary` on pelkkä
+otsikko uudestaan, ja kaikki linkit ovat opaakkeja `news.google.com`-redirectejä.
+Prompti sanoo tämän ääneen ja kieltää keksimästä sisältöä. Tämä on median
+laatukatto — liittovälilehdillä RSS ja `json_api` antavat oikean ingressin, ja
+arviot ovat siksi parempia. Jos median laatua halutaan nostaa, oikea korjaus on
+hakea artikkelisivun og-metatiedot, ei promptin kiristäminen.
+
+### Lajimedia karsitaan ehdollisesti
+
+`Golfpiste.com` on **ehdollisessa** karsinnassa (`exclude_publishers_unless`):
+julkaisija pudotetaan, paitsi jos otsikko osuu pelastuslistaan (`golfliit`,
+`liitto`, `liito`, `team finland`). Perustelu: sen virta on pääosin
+kiertuetuloksia, varusteita ja palstailmoituksia, ja painopiste on kansallisissa
+ja maakuntamedioissa. Liittoa itseään koskeva juttu — myös liiton toiminnan
+kritiikki — jää mukaan.
+
+Karsinta tehdään **keruussa eikä promptissa** kahdesta syystä: karsitut eivät
+kuluta Gemini-kutsuja, ja sääntö näkyy lokista rivinä "N ehdollisesti
+karsittua julkaisijan juttua". Prompti ei myöskään voisi soveltaa
+julkaisijakohtaista sääntöä luotettavasti, koska media-jutuista on käytössä
+vain otsikko.
+
+**Astevaihtelu on tässä oikea ansa.** Fraasit ovat osamerkkijonoja, ja suomen
+heikko aste katkaisee osuman: `liitto` **ei** osu muotoihin *liiton* tai
+*liitolta*, koska toinen t katoaa — ja juuri ne muodot esiintyvät kritiikissä.
+Siksi listalla on molemmat vartalot, `liitto` ja `liito`. Testi
+`test_conditional_publisher_exclusion` lukitsee tämän. Jos lisäät fraaseja,
+tarkista taivutusmuodot.
+
+Hinta on kirjattava: sääntö pudotti 21 jo kerättyä Golfpiste-riviä, joista 10
+oli katsauksessa — mm. Samoojan, Lindellin ja Välimäen kisajutut. Samat pelaajat
+uutisoidaan myös Ylessä, HS:ssä ja maakuntalehdissä, joten menetys on pieni,
+mutta jos suomalaispelaajien kisaseuranta ohenee, tämä sääntö on ensimmäinen
+paikka tarkistaa.
+
+### Liiton omat kanavat eivät ole mediaseurantaa
+
+`golf.fi` / "Suomen Golfliitto" on julkaisijasuodattimessa: oman tiedotteen
+näkeminen mediaseurannassa ei kerro mitään. **Poiminta sen sijaan kertoo** — kun
+Paraurheilu.fi julkaisee saman uutisen, julkaisija on Paraurheilu.fi ja juttu
+jää listalle. Painopiste on kansallisissa ja maakuntamedioissa.
+
+### Hakusäännöt on mitattu — älä muuta ilman uutta mittausta
+
+| Sääntö | Mittaus (8/2026) |
+|---|---|
+| `when:` on **pakollinen** | `golf` → 39 osumaa ilman, **100** kanssa |
+| `when:`-ikkuna = näkyvyysikkuna | `when:30d` → 100 merkintää, joista vain **41** ≤7 pv; `when:7d` → **54**, kaikki ikkunassa |
+| Hae **yhdellä sanalla** | `golf` → 30, `golf (Suomi OR Golfliitto OR golfseura)` → **1** |
+| Kahden sanan AND on yhtä paha | `golfkenttä kunta` → **0** |
+| **Älä** hae medioittain (`site:`) | `site:is.fi golf when:7d` palautti juttuja vuodelta **2021** |
+
+Syy on sama kaikissa: Google News järjestää tulokset relevanssin, ei
+päivämäärän mukaan, ja syöte katkeaa 100 merkintään. `when:` pakottaa tuoreuden;
+`site:` ohittaa sen. Ja koska budjetti on 100 merkintää, **liian pitkä `when:`
+hukkaa tuoreita**: se täyttää budjetin jutuilla, jotka karsiutuvat silti iän
+takia. Jos näkyvyysikkunaa muutetaan, muuta `when:` mukana. Laaja hakusana tavoittaa isot lehdet ilman `site:`-rajausta
+ja lisäksi maakuntalehdet, joita ei tulisi listanneeksi (ensimmäisessä ajossa
+osumia tuli 28 julkaisijalta: Viiskunta, Kaleva, Lapin Kansa, Uutisvuoksi,
+Järviseudun sanomat, Aamuposti…).
+
+**Nollaosuma ei ole vika.** Nimihaut osuvat harvoin mutta arvokkaasti:
+`"antti tiitola"` antoi 0 osumaa 30 pv:ltä mutta 180 pv:ltä juuri sen jutun jota
+haetaan (*"Muut lehdet: Golfliiton puheenjohtajan mukaan golf on päässyt eroon
+'vanhojen herrojen lajin' maineesta"*). Siksi media-lähteet on rajattu pois
+"LÄHTEET ILMAN ARTIKKELEITA" -varoituksesta ja lokitetaan omalla rivillään.
+
+**Yleinen nimi on pakko sitoa golfiin.** `"juha korhonen"` yksinään palautti
+metsästysseuran puheenjohtajan, kirjastojutun ja Seiska-juttuja;
+`"juha korhonen" golf` palauttaa vain golfin. Harvinainen nimi
+(`"antti tiitola"`) toimii sellaisenaan.
+
+### Kolme mekanismia, jotka media-välilehti tarvitsi
+
+- **`title_key` ilman lähdettä.** Liittovälilehdillä avain on lähdekohtainen,
+  koska kahden liiton uutinen samasta asiasta on kaksi eri juttua. Medialla se
+  on päinvastoin: sama STT-juttu on Iltalehdessä ja IS:ssä, ja sama juttu osuu
+  kahteen hakusanaan. "Lähde" ei ole julkaisija vaan hakulause, joten avain
+  lasketaan pelkästä otsikosta. Ensimmäisessä ajossa tämä yhdisti 102 osumaa
+  81 riviksi.
+- **Julkaisijan nimi Google Newsin `<source>`-tagista.** Ilman tätä listalla
+  lukisi joka rivillä hakulauseen nimi. Ylikirjoitus tehdään vain vapaassa
+  haussa — `site:`-haussa julkaisija on jo tiedossa.
+- **`max_articles` per lähde.** Globaali `MAX_PER_SOURCE = 15` katkaisisi laajan
+  `golf`-haun (100 osumaa) kuudesosaan. Liittolähteille 15 riittää yhä.
+
+### Hylkylistat pidetään lyhyinä
+
+`exclude` (osuma otsikkoon) ja `exclude_publishers` (julkaisijan nimi) ovat
+**vain toistuvaa roskaa varten** — TV-ohjelmatiedot ("ohjelman aikataulut") ja
+väärän maan julkaisijat, jotka laaja hakusana raahaa mukanaan joka ajossa.
+Aiheen rajaaminen ei kuulu näihin: media-välilehden koko idea on, että
+relevanssin ratkaisee ihminen. Jos lista alkaa kasvaa, kysy ensin onko oikea
+korjaus hakusanassa.
 
 ## Julkaisu
 

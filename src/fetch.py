@@ -21,6 +21,13 @@ from .sources import Source
 log = logging.getLogger(__name__)
 
 MIN_TITLE_LEN = 12
+
+
+def _cap(source: Source) -> int:
+    """Montako artikkelia lähteestä otetaan. Lähdekohtainen katto ohittaa
+    globaalin: laaja hakulause ("golf") tuottaa satoja osumia, kun taas yhden
+    liiton uutissivulta 15 riittää aina."""
+    return source.max_articles or config.MAX_PER_SOURCE
 _GN_SUFFIX = re.compile(r"\s+[-–|]\s+[^-–|]{2,40}$")
 
 # Skeema ilman kaksoispistettä keskellä linkkiä: "…nlhttps//www…"
@@ -250,8 +257,17 @@ def fetch_rss(source: Source, url: str, since: datetime.date,
 
         image = "" if google_news else _entry_image(entry)
         date_str = date_obj.isoformat() if date_obj else ""
-        articles.append(_article(source, title, link, date_str, summary, image))
-        if len(articles) >= config.MAX_PER_SOURCE:
+        art = _article(source, title, link, date_str, summary, image)
+        # Vapaassa hakulauseessa yksi "lähde" on oikeasti kymmeniä medioita, joten
+        # lähteen oma nimi ei kerro mitään. Google News antaa julkaisijan erikseen
+        # (<source>-tagi) — ilman tätä listalla lukisi joka rivillä sama nimi.
+        # site:-haussa julkaisija on jo tiedossa, joten sitä ei ylikirjoiteta.
+        if google_news and not source.google_news:
+            publisher = ((entry.get("source") or {}).get("title") or "").strip()
+            if publisher:
+                art["source_name"] = publisher
+        articles.append(art)
+        if len(articles) >= _cap(source):
             break
     return articles, diag
 
@@ -347,7 +363,7 @@ def fetch_json_api(source: Source, since: datetime.date) -> tuple[list[dict], di
 
         date_str = date_obj.isoformat() if date_obj else ""
         articles.append(_article(source, title, link, date_str, summary, image))
-        if len(articles) >= config.MAX_PER_SOURCE:
+        if len(articles) >= _cap(source):
             break
     return articles, diag
 
@@ -413,7 +429,7 @@ def fetch_sitemap(source: Source, since: datetime.date) -> tuple[list[dict], dic
     fresh.sort(key=lambda t: (t[1] is not None, t[1]), reverse=True)
 
     articles = []
-    for loc, d in fresh[:config.MAX_PER_SOURCE]:
+    for loc, d in fresh[:_cap(source)]:
         page = _http_get(loc)
         if page is None:
             diag["bad"] += 1
@@ -550,12 +566,53 @@ def fetch_html(source: Source, since: datetime.date) -> tuple[list[dict], dict]:
                 image = urljoin(source.html_url, src)
 
         articles.append(_article(source, title, url, date_str, summary, image))
-        if len(articles) >= config.MAX_PER_SOURCE:
+        if len(articles) >= _cap(source):
             break
     return articles, diag
 
 
 # ---------------------------------------------------------------- orchestration
+def _drop_excluded(source: Source,
+                   articles: list[dict]) -> tuple[list[dict], int, int]:
+    """Pudota lähteen hylkyfraaseihin osuvat otsikot.
+
+    Kolme mekanismia:
+      `exclude`                   — fraasi osuu otsikkoon
+      `exclude_publishers`        — julkaisijan nimi täsmää (ehdoton)
+      `exclude_publishers_unless` — julkaisija karsitaan PAITSI jos otsikko
+                                    osuu pelastusfraasiin (ehdollinen)
+
+    Julkaisijasuodattimet toimivat vain Google News -haussa, jossa julkaisija
+    poimitaan syötteestä.
+
+    Ehdollinen karsinta on tarkoitettu julkaisijaan, jonka virta on pääosin
+    epäolennaista mutta joka silti julkaisee säännöllisesti yhden kiinnostavan
+    aiheen. Se tehdään tässä eikä promptissa kahdesta syystä: karsitut eivät
+    kuluta Gemini-kutsuja, ja sääntö on jäljitettävissä lokista. Prompti ei
+    myöskään voisi tunnistaa julkaisijakohtaista sääntöä luotettavasti, koska
+    media-jutuista on käytössä vain otsikko.
+
+    Palauttaa (jäljelle jääneet, ehdoton karsinta, ehdollinen karsinta).
+    """
+    if not (source.exclude or source.exclude_publishers
+            or source.exclude_publishers_unless):
+        return articles, 0, 0
+
+    kept, hylatty, ehdollinen = [], 0, 0
+    for a in articles:
+        title = a["title"].casefold()
+        publisher = a["source_name"].casefold()
+        if any(x in title for x in source.exclude) or publisher in source.exclude_publishers:
+            hylatty += 1
+            continue
+        pelastavat = source.exclude_publishers_unless.get(publisher)
+        if pelastavat is not None and not any(x in title for x in pelastavat):
+            ehdollinen += 1
+            continue
+        kept.append(a)
+    return kept, hylatty, ehdollinen
+
+
 def fetch_source(source: Source, since: datetime.date) -> tuple[list[dict], dict]:
     """Kokeile hakutapoja järjestyksessä. Palauta (artikkelit, health)."""
     health = {"source_id": source.id, "source_name": source.name, "tab": source.tab,
@@ -581,6 +638,12 @@ def fetch_source(source: Source, since: datetime.date) -> tuple[list[dict], dict
             notes.append(f"{name}: virhe ({e})")
             log.warning("%s %s epäonnistui: %s", source.id, name, e)
             continue
+        articles, dropped, conditional = _drop_excluded(source, articles)
+        if dropped:
+            log.info("%s (%s): %d otsikkoa hylkylistalla", source.id, name, dropped)
+        if conditional:
+            log.info("%s (%s): %d ehdollisesti karsittua julkaisijan juttua",
+                     source.id, name, conditional)
         if articles:
             health.update(method=name, count=len(articles))
             # Päivämäärätön juttu päivätään havaitsemishetkellä, joten vanha juttu

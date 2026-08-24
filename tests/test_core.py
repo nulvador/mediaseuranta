@@ -8,7 +8,7 @@ import sqlite3
 
 import pytest
 
-from src import store
+from src import config, store
 from src.fetch import clean_title, parse_date
 from src.sources import load_sources
 
@@ -74,7 +74,7 @@ def conn(tmp_path):
 
 
 def _art(url="https://x.fi/a", title="Testiotsikko pitkä kyllä"):
-    # Päivämäärä suhteessa tähän päivään: pending_articles rajaa REPORT_DAYS-ikkunaan,
+    # Päivämäärä suhteessa tähän päivään: pending_articles rajaa ANALYZE_DAYS-ikkunaan,
     # joten kovakoodattu päivä vanhenee ikkunan ulkopuolelle ja kaataa testit.
     published = (datetime.date.today() - datetime.timedelta(days=1)).isoformat()
     return {"source_id": "s1", "source_name": "Lähde", "tab": "golfliitot",
@@ -207,6 +207,79 @@ def test_irrelevant_hidden_from_report(conn):
     assert store.report_articles(conn, days=3650) == []
 
 
+def test_raw_list_keeps_filtered_out_articles(conn):
+    """Raakalista näyttää myös karsitut — katsaus näyttää vain läpi menneet."""
+    store.insert_new(conn, [_art(url="https://x.fi/a", title="Karsittu juttu"),
+                            _art(url="https://x.fi/b", title="Relevantti juttu")])
+    pending = {a["title"]: a["id"] for a in store.pending_articles(conn)}
+    store.save_analysis(conn, [
+        {"article_id": pending["Karsittu juttu"], "relevant": False,
+         "title_fi": "", "summary_fi": "", "category": "muu",
+         "priority": "matala", "themes": []},
+        {"article_id": pending["Relevantti juttu"], "relevant": True,
+         "title_fi": "Suomennos", "summary_fi": "Tiivistelmä", "category": "muu",
+         "priority": "korkea", "themes": []},
+    ])
+
+    raw = store.raw_articles(conn, days=3650)
+    assert {r["title"] for r in raw} == {"Karsittu juttu", "Relevantti juttu"}
+    assert {r["title"] for r in store.report_articles(conn, days=3650)} == {"Relevantti juttu"}
+    # eff_date on olemassa myös ilman julkaisupäivää (havaitsemispäivä)
+    assert all(r["eff_date"] for r in raw)
+
+
+def test_raw_list_respects_window(conn):
+    old = _art(url="https://x.fi/vanha", title="Viikkoa vanhempi juttu")
+    old["published"] = (datetime.date.today() - datetime.timedelta(days=9)).isoformat()
+    store.insert_new(conn, [old])
+    assert store.raw_articles(conn, days=7) == []
+    assert len(store.raw_articles(conn, days=30)) == 1
+
+
+def test_analyze_window_is_shorter_than_report_window():
+    """Katsaus näkyy pidempään kuin analyysi kestää — ikkunoita ei saa yhdistää.
+
+    Jos ANALYZE_DAYS kasvaa REPORT_DAYS:n mukana, näkyvyyden pidentäminen
+    laajentaa samalla analysoitavien joukkoa ja syö Gemini-kiintiötä."""
+    assert config.ANALYZE_DAYS <= config.REPORT_DAYS
+
+
+def test_article_between_windows_stays_visible_but_is_not_reanalyzed(conn):
+    """6 pv vanha analysoitu juttu näkyy katsauksessa mutta ei palaa jonoon.
+
+    Irlannin 6 M€ infrastruktuuriohjelma (14.8.2026) oli oikein 'korkea',
+    mutta putosi katsauksesta 5 pv ikkunan takia. Ikkunan pidentäminen ei saa
+    tuoda sitä takaisin analysoitavaksi: arvio on jo tehty tuoreena."""
+    mid = _art(url="https://x.fi/valissa", title="Ikkunoiden valissa oleva juttu")
+    mid["published"] = (datetime.date.today() - datetime.timedelta(days=6)).isoformat()
+    store.insert_new(conn, [mid])
+
+    # Analyysi-ikkunan ulkopuolella: ei poimita jonoon eikä uudelleenanalyysiin
+    assert store.pending_articles(conn) == []
+    assert store.reset_analysis(conn) == 0
+
+    # ...mutta tuoreena tehty arvio näkyy katsauksessa yhä
+    conn.execute("UPDATE articles SET status='analyzed', title_fi='Suomennos', "
+                 "priority='korkea' WHERE url=?", (mid["url"],))
+    conn.commit()
+    titles = {a["title"] for a in store.report_articles(conn, config.REPORT_DAYS)}
+    assert "Ikkunoiden valissa oleva juttu" in titles
+    assert store.report_articles(conn, config.ANALYZE_DAYS) == []
+
+
+def test_expire_old_pending_uses_analyze_window(conn):
+    """Analysoimaton juttu vanhenee analyysi-ikkunan, ei katsausikkunan mukaan."""
+    mid = _art(url="https://x.fi/vanhentuva", title="Analysoimaton ja liian vanha")
+    mid["published"] = (datetime.date.today() - datetime.timedelta(days=6)).isoformat()
+    store.insert_new(conn, [mid])
+    assert store.expire_old_pending(conn, config.ANALYZE_DAYS) == 1
+    status = conn.execute("SELECT status FROM articles WHERE url=?",
+                          (mid["url"],)).fetchone()[0]
+    assert status == "expired"
+    # expired ei näy katsauksessa, vaikka olisi REPORT_DAYS-ikkunan sisällä
+    assert store.report_articles(conn, config.REPORT_DAYS) == []
+
+
 def test_import_legacy_json(conn, tmp_path):
     legacy = tmp_path / "articles.json"
     legacy.write_text(json.dumps([
@@ -223,10 +296,136 @@ def test_import_legacy_json(conn, tmp_path):
 def test_sources_yaml_loads():
     sources, defaults = load_sources()
     assert len(sources) >= 30
-    assert {s.tab for s in sources} == {"golfliitot", "urheilu_liitot"}
-    # jokaisella lähteellä vähintään yksi hakutapa
+    assert {s.tab for s in sources} == {"golfliitot", "urheilu_liitot", "media"}
+    # jokaisella lähteellä vähintään yksi hakutapa (json_api/sitemap/vapaa GN-haku
+    # mukaan lukien — media-lähteillä on vain google_news_query)
     for s in sources:
-        assert s.rss or s.html_url or s.google_news, f"{s.id}: ei hakutapaa"
+        assert (s.rss or s.html_url or s.json_api or s.sitemap
+                or s.google_news_rss), f"{s.id}: ei hakutapaa"
     # google news -URL muodostuu oikein
     gn = next(s for s in sources if s.google_news)
     assert "news.google.com/rss/search" in gn.google_news_rss
+
+
+# ---------------------------------------------------------------- media-välilehti
+def test_media_sources_use_when_operator():
+    """when: on pakollinen: ilman sitä Google News järjestää relevanssin mukaan
+    ja tuoreet jutut jäävät sadan merkinnän ulkopuolelle."""
+    sources, _ = load_sources()
+    media = [s for s in sources if s.tab == config.MEDIA_TAB]
+    assert media, "media-välilehdellä ei lähteitä"
+    for s in media:
+        assert s.google_news_query, f"{s.id}: media-lähde ilman hakulausetta"
+        assert "when:" in s.google_news_query, f"{s.id}: hakulauseesta puuttuu when:"
+        # site:-haku ohittaa when:-operaattorin ja palauttaa vuosien takaisia juttuja
+        assert "site:" not in s.google_news_query, f"{s.id}: site:-haku ei toimi when:in kanssa"
+
+
+def test_media_uses_the_same_windows_as_other_tabs(conn):
+    """Medialla EI ole omia ikkunoita: sama ANALYZE_DAYS ja REPORT_DAYS kuin
+    muilla. Erillinen MEDIA_DAYS haarautti storen turhaan (CASE WHEN tab),
+    joten jos joku palauttaa sen, tämä testi kaatuu."""
+    vanha = (datetime.date.today() - datetime.timedelta(days=20)).isoformat()
+    media = _art(url="https://media.fi/a", title="Kolme viikkoa vanha mediajuttu")
+    media.update(tab=config.MEDIA_TAB, source_id="media_golf", published=vanha)
+    liitto = _art(url="https://liitto.fi/b", title="Yhtä vanha liiton juttu")
+    liitto["published"] = vanha
+    store.insert_new(conn, [media, liitto])
+
+    # Kumpikaan ei mahdu analyysi-ikkunaan, eikä media saa poikkeusta
+    assert store.pending_articles(conn) == []
+
+    store.expire_old_pending(conn, days=config.ANALYZE_DAYS)
+    tilat = {r["title"]: r["status"] for r in store.raw_articles(conn, days=3650)}
+    assert tilat["Kolme viikkoa vanha mediajuttu"] == "expired"
+    assert tilat["Yhtä vanha liiton juttu"] == "expired"
+
+
+def test_media_article_visible_for_report_days(conn):
+    """Media-juttu näkyy katsauksessa yhtä pitkään kuin liittojen jutut."""
+    def lisaa(paivia, otsikko):
+        a = _art(url=f"https://media.fi/{paivia}", title=otsikko)
+        a.update(tab=config.MEDIA_TAB, source_id="media_golf",
+                 published=(datetime.date.today()
+                            - datetime.timedelta(days=paivia)).isoformat())
+        store.insert_new(conn, [a])
+        aid = next(x["id"] for x in store.pending_articles(conn)
+                   if x["title"] == otsikko)
+        store.save_analysis(conn, [{"article_id": aid, "relevant": True,
+                                    "title_fi": otsikko, "summary_fi": "T",
+                                    "category": "muu", "priority": "korkea",
+                                    "themes": []}])
+
+    lisaa(3, "Kolme päivää vanha")
+    otsikot = [a["title"] for a in store.report_articles(conn, config.REPORT_DAYS)]
+    assert "Kolme päivää vanha" in otsikot
+    # Katsausikkunan ulkopuolella ei näy
+    assert store.report_articles(conn, days=1) == []
+
+
+def test_media_prompt_is_used_for_media_tab():
+    """Media-välilehti ei saa valua golf-promptiin: kysymys on eri."""
+    from src.analyze import _PROMPT_GOLF, _PROMPT_MEDIA, _PROMPT_SPORTS
+    valinta = lambda tab: {"urheilu_liitot": _PROMPT_SPORTS,
+                           config.MEDIA_TAB: _PROMPT_MEDIA}.get(tab, _PROMPT_GOLF)
+    assert valinta(config.MEDIA_TAB) is _PROMPT_MEDIA
+    assert valinta("golfliitot") is _PROMPT_GOLF
+    assert valinta("urheilu_liitot") is _PROMPT_SPORTS
+    # Portti ei saa mainita tasoa (CLAUDE.md:n rautainen sääntö)
+    portit = _PROMPT_MEDIA.split("2. title_fi")[0]
+    for taso in ("KORKEA", "KESKITASO", "MATALA"):
+        assert taso not in portit, f"porttiosio mainitsee tason {taso}"
+
+
+def test_media_dedup_ignores_source(conn):
+    """Sama juttu eri lehdistä (ja eri hakusanasta) on yksi rivi medialla,
+    mutta kaksi eri riviä liittovälilehdillä."""
+    def media(src, title):
+        a = _art(url=f"https://{src}.fi/{title[:5]}", title=title)
+        a.update(tab=config.MEDIA_TAB, source_id=src, source_name=src)
+        return a
+
+    store.insert_new(conn, [media("iltalehti", "Golf tuottaa Suomelle 630 miljoonaa"),
+                            media("is", "Golf tuottaa Suomelle 630 miljoonaa")])
+    raw = store.raw_articles(conn, days=3650)
+    assert len(raw) == 1, "sama otsikko eri lehdistä pitäisi yhdistyä medialla"
+
+    # Liittovälilehdillä sama otsikko kahdesta liitosta säilyy kahtena juttuna
+    a1 = _art(url="https://x.fi/1", title="Sama otsikko kahdesta liitosta")
+    a2 = _art(url="https://y.fi/2", title="Sama otsikko kahdesta liitosta")
+    a2["source_id"] = "s2"
+    store.insert_new(conn, [a1, a2])
+    liitot = [r for r in store.raw_articles(conn, days=3650)
+              if r["tab"] == "golfliitot"]
+    assert len(liitot) == 2
+
+
+def test_conditional_publisher_exclusion():
+    """Ehdollinen julkaisijakarsinta: pois paitsi jos otsikko pelastaa.
+
+    Karsinta tehdään keruussa eikä promptissa, jotta se ei kuluta
+    Gemini-kutsuja ja jotta sääntö näkyy lokista."""
+    from src.fetch import _drop_excluded
+    from src.sources import Source
+
+    src = Source(id="media_golf", name="Haku: golf", tab=config.MEDIA_TAB,
+                 country="Suomi", language="fi",
+                 # Molemmat vartalot: suomen heikko aste ("liiton") ei osu
+                 # fraasiin "liitto", ja juuri se muoto esiintyy kritiikissä.
+                 exclude_publishers_unless={"golfpiste.com":
+                                            ["golfliit", "liitto", "liito"]})
+    jutut = [
+        {"title": "Kalle Samooja palasi kilpailuihin", "source_name": "Golfpiste.com"},
+        {"title": "Golfliitto uudistaa tasoitusjärjestelmän", "source_name": "Golfpiste.com"},
+        {"title": "Liitolta moitteita kenttien kunnosta", "source_name": "Golfpiste.com"},
+        {"title": "Liiton linjaus jakaa seuroja", "source_name": "Golfpiste.com"},
+        {"title": "Kalle Samooja palasi kilpailuihin", "source_name": "Ilta-Sanomat"},
+    ]
+    kept, hylatty, ehdollinen = _drop_excluded(src, jutut)
+    otsikot = [a["title"] for a in kept]
+    assert "Golfliitto uudistaa tasoitusjärjestelmän" in otsikot
+    assert "Liitolta moitteita kenttien kunnosta" in otsikot   # heikko aste
+    assert "Liiton linjaus jakaa seuroja" in otsikot           # heikko aste
+    # Sama juttu muusta mediasta jää, Golfpisteestä ei
+    assert otsikot.count("Kalle Samooja palasi kilpailuihin") == 1
+    assert (hylatty, ehdollinen) == (0, 1)

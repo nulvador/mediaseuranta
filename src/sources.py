@@ -32,7 +32,7 @@ _GN_LOCALE = {
 class Source:
     id: str
     name: str
-    tab: str                    # "golfliitot" | "urheilu_liitot"
+    tab: str                    # "golfliitot" | "urheilu_liitot" | "media"
     country: str
     language: str
     rss: Optional[str] = None
@@ -42,6 +42,12 @@ class Source:
     html_selectors: dict = field(default_factory=dict)
     google_news: Optional[str] = None          # domain -> site:-haku
     google_news_query: Optional[str] = None    # vapaa hakulause (esim. JS-sivustot, joita GN ei indeksoi)
+    exclude: list = field(default_factory=list)  # otsikon hylkyfraasit (ks. load_sources)
+    max_articles: Optional[int] = None         # lähdekohtainen katto (oletus config.MAX_PER_SOURCE)
+    exclude_publishers: list = field(default_factory=list)  # julkaisijat pois (vain Google News)
+    # julkaisija -> fraasit, jotka PELASTAVAT jutun. Ehdollinen karsinta:
+    # julkaisija karsitaan, paitsi jos otsikko osuu johonkin fraasiin.
+    exclude_publishers_unless: dict = field(default_factory=dict)
 
     @property
     def google_news_rss(self) -> Optional[str]:
@@ -80,6 +86,16 @@ def load_sources(path=None) -> tuple[list[Source], dict]:
             html_selectors=selectors,
             google_news=item.get("google_news"),
             google_news_query=item.get("google_news_query"),
+            # Hylkyfraasit ovat pieniä kirjaimia ja vertaillaan osumana otsikkoon.
+            # Tarkoitettu vain toistuvaan roskaan (TV-ohjelmatiedot, ostoilmoitukset),
+            # EI aiheen rajaamiseen — relevanssiarvio kuuluu ihmiselle.
+            exclude=[str(x).casefold() for x in (item.get("exclude") or [])],
+            max_articles=item.get("max_articles"),
+            exclude_publishers=[str(x).casefold()
+                                for x in (item.get("exclude_publishers") or [])],
+            exclude_publishers_unless={
+                str(k).casefold(): [str(x).casefold() for x in (v or [])]
+                for k, v in (item.get("exclude_publishers_unless") or {}).items()},
         ))
 
     ids = [s.id for s in sources]
