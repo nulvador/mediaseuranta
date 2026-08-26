@@ -2,7 +2,9 @@
 __pycache__/
 *.pyc
 .env
-data/*.db
+# HUOM: data/monitor.db on tarkoituksella versionhallinnassa. Pilviajo
+# (GitHub Actions) tarvitsee sen muistaakseen jo nähdyt uutiset ja arviot.
+# Tiedosto sisältää vain julkisia uutisotsikoita — ei salaisuuksia.
 data/*.db-*
 output/
 logs/
