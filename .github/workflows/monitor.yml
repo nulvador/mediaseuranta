@@ -1,0 +1,59 @@
+name: Mediaseuranta
+
+# Ajo pyörii GitHubin palvelimilla — ei riipu kenenkään koneesta.
+# Tiistaisin ja perjantaisin klo 12:00 Suomen aikaa (kesä) / 11:00 (talvi).
+# Ajankohta on tarkoituksella iltapäivällä: Geminin ilmaiskiintiö nollautuu
+# n. klo 10 Suomen aikaa, joten ajo saa aina tuoreen kiintiön.
+on:
+  schedule:
+    - cron: "0 9 * * 2,5"
+  workflow_dispatch:        # "Run workflow" -nappi GitHubin Actions-välilehdellä
+
+permissions:
+  contents: write           # tarvitaan raportin ja tietokannan tallennukseen
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Asenna riippuvuudet
+        run: pip install -r requirements.txt
+
+      - name: Kerää ja analysoi uutiset
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python -m src.main --no-email
+
+      - name: Salaa raportti julkaisua varten
+        env:
+          REPORT_PASSWORD: ${{ secrets.REPORT_PASSWORD }}
+        run: |
+          mkdir -p docs
+          if [ -z "$REPORT_PASSWORD" ]; then
+            echo "::error::REPORT_PASSWORD puuttuu — julkaisu keskeytetään, ettei salaamaton raportti päädy verkkoon"
+            exit 1
+          fi
+          python -m src.encrypt output/report.html docs/index.html
+
+      - name: Julkaise raportti ja tallenna tietokanta
+        run: |
+          git config user.name "Mediaseuranta-botti"
+          git config user.email "actions@github.com"
+          git add docs/index.html data/monitor.db
+          git diff --staged --quiet || git commit -m "Päivitä raportti $(date +%Y-%m-%d)"
+          git push
+
+      - name: Talleta loki vianetsintää varten
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: loki
+          path: logs/
+          retention-days: 14
