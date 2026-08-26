@@ -14,8 +14,10 @@ def generate_report(articles: list[dict], healths: list[dict], run_summary: dict
                     raw: list[dict] = None) -> str:
     today = datetime.date.today().strftime("%d.%m.%Y")
     previous_run_at = run_summary.get("previous_run_at")
+    # Emojia ei lasketa tähän: prioriteetti voi muuttua ihmisen korjauksella
+    # kesken istunnon, joten kortti hakee sen selaimen PRIO_EMOJI-taulusta.
+    # PRIO_EMOJI on silti käytössä sähköpostikoosteessa (emailer.py).
     for a in articles:
-        a["prio_emoji"] = PRIO_EMOJI.get(a.get("priority") or "", "")
         a["is_new"] = bool(previous_run_at) and (a.get("fetched_at") or "") > previous_run_at
 
     new_since_last = sum(1 for a in articles if a["is_new"])
@@ -125,6 +127,32 @@ main {{ max-width:1360px; margin:0 auto; padding:0 24px 40px; }}
   font-size:.62rem; font-weight:900; letter-spacing:.05em; padding:2px 8px;
   border-radius:999px; margin-left:6px; vertical-align:middle; }}
 
+/* ── Korjausrivi kortin alalaidassa ── */
+.fix {{ display:flex; align-items:center; gap:4px; flex-wrap:wrap;
+  border-top:1px solid var(--sg-grey-200); margin-top:10px; padding-top:9px; }}
+.fx {{ font-family:inherit; font-size:.8rem; line-height:1; cursor:pointer;
+  border:1.5px solid var(--sg-grey-200); background:var(--sg-white);
+  color:var(--sg-racing-green); border-radius:8px; padding:5px 7px; transition:all .12s; }}
+.fx:hover {{ border-color:var(--sg-racing-green); background:var(--sg-light-green); }}
+.fx.on {{ border-color:var(--sg-racing-green); background:var(--sg-light-green); }}
+.fx.drop.on {{ border-color:var(--prio-korkea); color:var(--prio-korkea); }}
+.fx.undo, .fx.add {{ font-size:.66rem; font-weight:700; text-transform:uppercase;
+  letter-spacing:.04em; padding:5px 9px; }}
+.fix .why {{ font-family:inherit; font-size:.72rem; padding:5px 8px; flex:1;
+  min-width:120px; border:1.5px solid var(--sg-grey-200); border-radius:8px;
+  background:var(--sg-white); color:var(--sg-grey-700); }}
+.fix .why:focus {{ outline:2px solid var(--sg-green); border-color:transparent; }}
+.card.dropped {{ opacity:.45; }}
+.card.dropped h3 a {{ text-decoration:line-through; }}
+.fix-badge {{ display:inline-block; background:var(--sg-racing-green); color:var(--sg-white);
+  font-size:.6rem; font-weight:900; letter-spacing:.05em; padding:2px 8px;
+  border-radius:999px; margin-left:6px; vertical-align:middle; }}
+#fixJson {{ width:100%; box-sizing:border-box; font-family:ui-monospace,Menlo,monospace;
+  font-size:.68rem; line-height:1.4; border:1.5px solid var(--sg-grey-200);
+  border-radius:10px; padding:9px; margin-top:10px; color:var(--sg-grey-700); }}
+#fixBox .actions {{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }}
+#fixBox .actions .fx {{ font-size:.74rem; font-weight:700; padding:8px 14px; }}
+
 /* ── Lähdeterveys & footer ── */
 details {{ margin-top:36px; background:var(--sg-white); border-radius:16px; padding:16px 20px; }}
 summary {{ cursor:pointer; color:var(--sg-racing-green); font-weight:700;
@@ -206,6 +234,27 @@ footer .tag-line {{ color:var(--sg-green); font-weight:700; margin-top:4px; }}
     <p class="note">* päivämäärä ei ollut tiedossa — näytetään havaitsemispäivä.</p>
   </details>
 
+  <details id="fixBox">
+    <summary>Omat korjaukset (<span id="fixCount">0</span>)</summary>
+    <p class="note">Kortin alalaidan napit korjaavat yhden jutun prioriteetin, ja
+      ✕ merkitsee sen katsauksen ulkopuolelle. Raakalistalta voi nostaa karsitun
+      jutun katsaukseen. Korjaus vaikuttaa heti tähän näkymään ja säilyy tässä
+      selaimessa — <strong>prompti ja portit eivät muutu automaattisesti</strong>.
+      Kirjoita perustelu jos ehdit: se on kalibroinnissa tärkeämpi kuin otsikko.</p>
+    <p class="note">Vie korjaukset kantaan: kopioi alla oleva JSON tiedostoon
+      (esim. <code>korjaukset.json</code>) ja aja
+      <code>python -m src.main --apply-corrections korjaukset.json --report-only</code>.
+      Sen jälkeen korjaus pysyy voimassa myös seuraavissa ajoissa, ja kertyy
+      listaan, joka käydään promptin päivityksen yhteydessä läpi kokonaisuutena.</p>
+    <table><thead><tr><th>Välilehti</th><th>Juttu</th><th>Muutos</th><th>Perustelu</th></tr></thead>
+    <tbody id="fixList"></tbody></table>
+    <div class="actions">
+      <button class="fx" id="fixCopy">Kopioi leikepöydälle</button>
+      <button class="fx" id="fixClear">Tyhjennä</button>
+    </div>
+    <textarea id="fixJson" rows="7" readonly placeholder="Ei korjauksia."></textarea>
+  </details>
+
   <details>
     <summary>Lähteiden tila viimeisimmässä ajossa</summary>
     <table><thead><tr><th>Lähde</th><th>Tapa</th><th>Artikkeleita</th><th>Huomiot</th></tr></thead>
@@ -225,7 +274,69 @@ const HEALTH = {health_json};
 const RAW = {raw_json};
 const THEMES = {themes_json};
 const PRIO_ORDER = {{korkea:0, keskitaso:1, matala:2}};
+// Emoji lasketaan selaimessa eikä palvelimella, koska prioriteetti voi muuttua
+// korjauksella kesken istunnon.
+const PRIO_EMOJI = {{korkea:"🔴", keskitaso:"🟡", matala:"🟢"}};
+const PRIOS = ["korkea", "keskitaso", "matala"];
+const TAB_NAMES = {{golfliitot:"Golfliitot", urheilu_liitot:"Lajiliitot", media:"Media"}};
 let tab = "golfliitot";
+
+/* ── Ihmisen korjaukset ──────────────────────────────────────────────
+   Korjaus elää selaimessa siihen asti että se viedään kantaan. Avain on
+   url_hash, joka pysyy samana raportista toiseen, joten korjaus pitää paikkansa
+   myös seuraavan ajon uudessa HTML-tiedostossa. Kun korjaus on viety kantaan,
+   sama arvo tulee jo upotetussa datassa ja tämä kerros muuttuu tyhjäkäynniksi.
+   Kaikki localStorage-kutsut ovat try/catchissa: yksityinen selainikkuna voi
+   heittää poikkeuksen, eikä raportti saa kaatua siihen. */
+const FIX_KEY = "golfkatsaus.korjaukset";
+let CORR = {{}};
+
+function loadCorr() {{
+  try {{ CORR = JSON.parse(localStorage.getItem(FIX_KEY) || "{{}}") || {{}}; }}
+  catch (_) {{ CORR = {{}}; }}
+}}
+function saveCorr() {{
+  try {{ localStorage.setItem(FIX_KEY, JSON.stringify(CORR)); }} catch (_) {{}}
+}}
+function corrMeta(a) {{
+  // Konteksti talteen korjaushetkellä: kalibrointikierros luetaan viikkoja
+  // myöhemmin, jolloin pelkkä avain ei kerro mistä oli kyse.
+  return {{url_hash:a.url_hash, title_key:a.title_key||"", tab:a.tab||"",
+          source_name:a.source_name||"", url:a.url||"", title:a.title||"",
+          title_fi:a.title_fi||"", was_priority:a.priority||"",
+          was_status:a.status||""}};
+}}
+function setCorr(a, patch) {{
+  const prev = CORR[a.url_hash] || {{}};
+  CORR[a.url_hash] = Object.assign(corrMeta(a), {{reason:prev.reason||""}}, patch,
+    {{created_at: prev.created_at || new Date().toISOString()}});
+  saveCorr();
+}}
+function dropCorr(h) {{ delete CORR[h]; saveCorr(); }}
+function effPrio(a) {{
+  const c = CORR[a.url_hash];
+  return (c && c.priority) ? c.priority : a.priority;
+}}
+function isDropped(a) {{
+  const c = CORR[a.url_hash];
+  return !!c && c.verdict === "exclude";
+}}
+
+function fixRow(a) {{
+  const c = CORR[a.url_hash] || {{}};
+  const now = effPrio(a);
+  const btns = PRIOS.map(pr => `<button class="fx${{now === pr ? " on" : ""}}"
+      data-h="${{a.url_hash}}" data-v="${{pr}}" title="Merkitse: ${{pr}}"
+      >${{PRIO_EMOJI[pr]}}</button>`).join("");
+  const drop = `<button class="fx drop${{c.verdict === "exclude" ? " on" : ""}}"
+      data-h="${{a.url_hash}}" data-v="exclude"
+      title="Ei kuulu katsaukseen">✕</button>`;
+  const undo = c.verdict ? `<button class="fx undo" data-h="${{a.url_hash}}"
+      data-v="undo" title="Peru korjaus">peru</button>` : "";
+  const why = c.verdict ? `<input class="why" data-h="${{a.url_hash}}"
+      placeholder="miksi? (valinnainen)" value="${{esc(c.reason||"")}}">` : "";
+  return `<div class="fix">${{btns}}${{drop}}${{undo}}${{why}}</div>`;
+}}
 
 const $ = id => document.getElementById(id);
 const esc = s => (s||"").replace(/[&<>"]/g, c => ({{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}}[c]));
@@ -270,31 +381,38 @@ function render() {{
   const prio = $("prio").value, theme = $("theme").value, country = $("country").value;
   const onlyNew = $("onlyNew").checked;
   let items = ARTICLES.filter(a => a.tab === tab
-    && (!prio || a.priority === prio)
+    && (!prio || effPrio(a) === prio)
     && (!theme || (a.themes||[]).includes(theme))
     && (!country || a.country === country)
     && (!onlyNew || a.is_new)
     && (!q || ((a.title_fi||"")+(a.title||"")+(a.summary_fi||"")).toLowerCase().includes(q)));
   // Tärkein signaali ensin: prioriteetti (punainen → keltainen → vihreä),
   // saman prioriteetin sisällä uudet edellä ja tuoreimmat päälle.
-  items.sort((a,b) => (PRIO_ORDER[a.priority]??3)-(PRIO_ORDER[b.priority]??3)
+  // Katsauksen ulkopuolelle merkityt valuvat loppuun mutta EIVÄT katoa: muuten
+  // vahingossa painettua ✕:ää ei voisi perua eikä nähdä mitä tuli merkityksi.
+  items.sort((a,b) => (isDropped(a) - isDropped(b))
+    || (PRIO_ORDER[effPrio(a)]??3)-(PRIO_ORDER[effPrio(b)]??3)
     || (b.is_new - a.is_new)
     || (b.published||"").localeCompare(a.published||""));
-  const newCount = items.filter(a => a.is_new).length;
-  $("count").textContent = items.length + " artikkelia"
-    + (newCount ? ` · ${{newCount}} uutta edellisen ajon jälkeen` : "");
+  const dropped = items.filter(isDropped).length;
+  const newCount = items.filter(a => a.is_new && !isDropped(a)).length;
+  $("count").textContent = (items.length - dropped) + " artikkelia"
+    + (newCount ? ` · ${{newCount}} uutta edellisen ajon jälkeen` : "")
+    + (dropped ? ` · ${{dropped}} merkitty katsauksen ulkopuolelle` : "");
   $("list").innerHTML = items.map(a => `
-    <div class="card ${{a.priority||""}} ${{a.is_new ? "is-new" : ""}}">
+    <div class="card ${{effPrio(a)||""}} ${{a.is_new ? "is-new" : ""}} ${{isDropped(a) ? "dropped" : ""}}">
       ${{thumb(a)}}
       <div class="card-body">
-        <div class="meta">${{a.prio_emoji||""}} ${{esc(a.source_name)}}
+        <div class="meta">${{PRIO_EMOJI[effPrio(a)]||""}} ${{esc(a.source_name)}}
           · ${{esc(a.country)}} · ${{esc(a.published||"pvm ei tiedossa")}}
           ${{a.category ? " · " + esc(a.category) : ""}}
-          ${{a.is_new ? '<span class="new-badge">UUSI</span>' : ""}}</div>
+          ${{a.is_new ? '<span class="new-badge">UUSI</span>' : ""}}
+          ${{CORR[a.url_hash] ? '<span class="fix-badge">korjattu</span>' : ""}}</div>
         <h3><a href="${{esc(a.url||"#")}}" target="_blank" rel="noopener">${{esc(a.title_fi||a.title)}}</a></h3>
         ${{a.title_fi && a.title_fi !== a.title ? `<p class="orig">${{esc(a.title)}}</p>` : ""}}
         <p class="sum">${{esc(a.summary_fi||a.summary||"")}}</p>
         <div>${{(a.themes||[]).map(t => `<span class="tag">${{esc(t)}}</span>`).join("")}}</div>
+        ${{fixRow(a)}}
       </div>
     </div>`).join("") || "<p>Ei artikkeleita valituilla suodattimilla.</p>";
 }}
@@ -312,8 +430,57 @@ function renderRaw() {{
       <td class="nowrap">${{esc(a.source_name)}}</td>
       <td><a href="${{esc(a.url||"#")}}" target="_blank" rel="noopener">${{esc(a.title)}}</a>${{
         (a.status === "analyzed" || a.status === "stale") && a.tab !== "media"
-          ? '<span class="in-report">katsauksessa</span>' : ""}}</td>
+          ? '<span class="in-report">katsauksessa</span>' : ""}} ${{rawFix(a)}}</td>
     </tr>`).join("") || '<tr><td colspan="3">Ei löydettyjä uutisia.</td></tr>';
+}}
+
+function rawFix(a) {{
+  // Portin karsintavirhe näkyy vain täällä, joten nosto tehdään täältä. Juttu
+  // ilmestyy katsaukseen vasta seuraavassa generoinnissa: raakalista ja katsaus
+  // ovat eri taulukoita, eikä karsitun jutun käännös ole tässä näkymässä mukana.
+  if (a.status === "analyzed" || a.status === "stale" || !a.url_hash) return "";
+  const c = CORR[a.url_hash];
+  return (c && c.verdict === "include")
+    ? `<button class="fx add on" data-h="${{a.url_hash}}" data-v="undo"
+         title="Peru">merkitty katsaukseen ✓</button>`
+    : `<button class="fx add" data-h="${{a.url_hash}}" data-v="include"
+         title="Tämä olisi pitänyt ottaa katsaukseen">+ katsaukseen</button>`;
+}}
+
+function renderFix() {{
+  const items = Object.values(CORR).sort((a,b) =>
+    (a.created_at||"").localeCompare(b.created_at||""));
+  $("fixCount").textContent = items.length;
+  $("fixJson").value = items.length ? JSON.stringify(items, null, 1) : "";
+  $("fixList").innerHTML = items.map(c => `
+    <tr><td class="nowrap">${{esc(TAB_NAMES[c.tab] || c.tab || "")}}</td>
+        <td>${{esc(c.title_fi || c.title || "")}}</td>
+        <td class="nowrap">${{esc(c.was_priority || "karsittu")}} &rarr; ${{esc(
+          c.verdict === "exclude" ? "pois katsauksesta"
+          : c.verdict === "include" ? "katsaukseen"
+          : c.priority || "")}}</td>
+        <td>${{esc(c.reason || "")}}</td></tr>`).join("")
+    || '<tr><td colspan="4">Ei korjauksia.</td></tr>';
+}}
+
+function applyFix(h, verdict, source) {{
+  const a = source.find(x => x.url_hash === h);
+  if (!a) return;
+  const c = CORR[h];
+  if (verdict === "undo") {{ dropCorr(h); }}
+  else if (verdict === "exclude") {{
+    if (c && c.verdict === "exclude") dropCorr(h);          // toinen painallus perua
+    else setCorr(a, {{verdict:"exclude", priority:""}});
+  }} else if (verdict === "include") {{
+    setCorr(a, {{verdict:"include", priority:""}});
+  }} else if (verdict === a.priority && !(c && c.verdict === "exclude")) {{
+    // Mallin oman tason painaminen ei ole korjaus vaan vahvistus — sitä ei
+    // kirjata, jotta kalibrointiaineistoon ei kerry tyhjiä rivejä.
+    dropCorr(h);
+  }} else {{
+    setCorr(a, {{verdict:"priority", priority:verdict}});
+  }}
+  render(); renderRaw(); renderFix();
 }}
 
 function renderHealth() {{
@@ -329,7 +496,39 @@ document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {{
 ["prio","theme","country","onlyNew"].forEach(id => $(id).onchange = render);
 $("search").oninput = () => {{ render(); renderRaw(); }};
 
-initFilters(); render(); renderRaw(); renderHealth();
+// Delegointi, koska molemmat listat piirretään uudelleen innerHTML:llä.
+$("list").addEventListener("click", e => {{
+  const b = e.target.closest("button.fx");
+  if (b) applyFix(b.dataset.h, b.dataset.v, ARTICLES);
+}});
+$("raw").addEventListener("click", e => {{
+  const b = e.target.closest("button.fx");
+  if (b) applyFix(b.dataset.h, b.dataset.v, RAW);
+}});
+// Perustelu tallennetaan ILMAN uudelleenpiirtoa: piirto veisi fokuksen
+// kirjoituskentästä joka näppäimen painalluksella.
+$("list").addEventListener("input", e => {{
+  const i = e.target.closest("input.why");
+  if (!i || !CORR[i.dataset.h]) return;
+  CORR[i.dataset.h].reason = i.value; saveCorr(); renderFix();
+}});
+
+$("fixCopy").onclick = async () => {{
+  const t = $("fixJson");
+  if (!t.value) return;
+  try {{ await navigator.clipboard.writeText(t.value); }}
+  catch (_) {{ t.select(); document.execCommand("copy"); }}
+  $("fixCopy").textContent = "Kopioitu ✓";
+  setTimeout(() => {{ $("fixCopy").textContent = "Kopioi leikepöydälle"; }}, 1600);
+}};
+$("fixClear").onclick = () => {{
+  if (!Object.keys(CORR).length) return;
+  if (!confirm("Tyhjennetäänkö kaikki korjaukset? "
+             + "Vie ne ensin talteen — tyhjennystä ei voi perua.")) return;
+  CORR = {{}}; saveCorr(); render(); renderRaw(); renderFix();
+}};
+
+loadCorr(); initFilters(); render(); renderRaw(); renderHealth(); renderFix();
 </script>
 </body></html>"""
 

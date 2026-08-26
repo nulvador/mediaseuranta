@@ -429,3 +429,123 @@ def test_conditional_publisher_exclusion():
     # Sama juttu muusta mediasta jää, Golfpisteestä ei
     assert otsikot.count("Kalle Samooja palasi kilpailuihin") == 1
     assert (hylatty, ehdollinen) == (0, 1)
+
+
+# ------------------------------------------------- ihmisen korjaukset
+def _analyzed(conn, priority="korkea", relevant=True):
+    """Lisää yksi artikkeli ja anna sille mallin arvio."""
+    store.insert_new(conn, [_art()])
+    row = conn.execute("SELECT id, url_hash, title_key FROM articles").fetchone()
+    store.save_analysis(conn, [{"article_id": row["id"], "relevant": relevant,
+                                "title_fi": "Suomennettu otsikko",
+                                "summary_fi": "Tiivistelmä", "category": "muu",
+                                "priority": priority, "themes": []}])
+    return dict(row)
+
+
+def _corr(row, verdict="priority", priority="keskitaso", **kw):
+    c = {"url_hash": row["url_hash"], "title_key": row["title_key"],
+         "tab": "golfliitot", "verdict": verdict, "priority": priority,
+         "was_priority": "korkea", "reason": "yksittäinen turnaus"}
+    c.update(kw)
+    return c
+
+
+def test_correction_overrides_model_priority(conn):
+    row = _analyzed(conn, "korkea")
+    assert store.save_corrections(conn, [_corr(row)]) == (1, 0)
+    assert store.apply_corrections(conn) == 1
+    got = conn.execute("SELECT status, priority FROM articles").fetchone()
+    assert (got["status"], got["priority"]) == ("analyzed", "keskitaso")
+    # Idempotentti: toinen ajo ei enää muuta mitään
+    assert store.apply_corrections(conn) == 0
+
+
+def test_correction_survives_reanalysis(conn):
+    """Tämä on koko mekanismin ydin: uusi Gemini-arvio ei saa pyyhkiä ihmisen
+    korjausta. Siksi apply_corrections ajetaan joka ajossa analyysin JÄLKEEN."""
+    row = _analyzed(conn, "korkea")
+    store.save_corrections(conn, [_corr(row)])
+    store.apply_corrections(conn)
+    # --reanalyze ja uusi arvio, joka on yhä mallin mielestä korkea
+    store.reset_analysis(conn, "golfliitot")
+    store.save_analysis(conn, [{"article_id": row["id"], "relevant": True,
+                                "title_fi": "Suomennettu otsikko",
+                                "summary_fi": "T", "category": "muu",
+                                "priority": "korkea", "themes": []}])
+    assert conn.execute("SELECT priority FROM articles").fetchone()[0] == "korkea"
+    store.apply_corrections(conn)
+    assert conn.execute("SELECT priority FROM articles").fetchone()[0] == "keskitaso"
+
+
+def test_correction_exclude_drops_from_report(conn):
+    row = _analyzed(conn, "korkea")
+    store.save_corrections(conn, [_corr(row, verdict="exclude", priority="")])
+    store.apply_corrections(conn)
+    assert conn.execute("SELECT status FROM articles").fetchone()[0] == "irrelevant"
+    assert store.report_articles(conn, config.REPORT_DAYS) == []
+
+
+def test_correction_include_lifts_culled_article(conn):
+    """Karsitulla rivillä on jo käännös kannassa, joten nosto ei vaadi
+    Gemini-kutsua — pelkkä statuksen vaihto riittää."""
+    row = _analyzed(conn, "matala", relevant=False)
+    assert conn.execute("SELECT status FROM articles").fetchone()[0] == "irrelevant"
+    store.save_corrections(conn, [_corr(row, verdict="include", priority="")])
+    store.apply_corrections(conn)
+    got = conn.execute("SELECT status, priority FROM articles").fetchone()
+    assert (got["status"], got["priority"]) == ("analyzed", "matala")
+    assert len(store.report_articles(conn, config.REPORT_DAYS)) == 1
+
+
+def test_correction_include_waits_for_translation(conn):
+    """Analysoimatonta juttua ei voi nostaa katsaukseen: käännös puuttuu. Rivi
+    jää jonoon, ja sama korjaus nostaa sen vasta analyysin jälkeen."""
+    store.insert_new(conn, [_art()])
+    row = dict(conn.execute("SELECT id, url_hash, title_key FROM articles").fetchone())
+    store.save_corrections(conn, [_corr(row, verdict="include", priority="")])
+    store.apply_corrections(conn)
+    assert conn.execute("SELECT status FROM articles").fetchone()[0] == "new"
+    assert store.report_articles(conn, config.REPORT_DAYS) == []
+
+
+def test_correction_matches_dedup_twin(conn):
+    """Korjattu rivi voi hävitä dedupissa. Silloin korjaus pitää osua
+    kaksoiskappaleeseen title_keyllä, tai se katoaisi hiljaa."""
+    row = _analyzed(conn, "korkea")
+    store.save_corrections(conn, [_corr(row, url_hash="ei-kannassa-olevaa-hashia")])
+    assert store.apply_corrections(conn) == 1
+    assert conn.execute("SELECT priority FROM articles").fetchone()[0] == "keskitaso"
+
+
+def test_correction_upsert_reopens_review(conn):
+    """Uusi korjaus samaan juttuun korvaa vanhan ja palaa katselmoitavaksi."""
+    row = _analyzed(conn, "korkea")
+    store.save_corrections(conn, [_corr(row, priority="keskitaso")])
+    assert store.mark_corrections_reviewed(conn) == 1
+    assert store.pending_corrections(conn) == []
+    assert store.save_corrections(conn, [_corr(row, priority="matala")]) == (0, 1)
+    pending = store.pending_corrections(conn)
+    assert len(pending) == 1 and pending[0]["priority"] == "matala"
+    store.apply_corrections(conn)
+    assert conn.execute("SELECT priority FROM articles").fetchone()[0] == "matala"
+
+
+def test_correction_rejects_invalid(conn):
+    row = _analyzed(conn, "korkea")
+    bad = [_corr(row, verdict="jotain-muuta"),
+           _corr(row, priority="punainen"),
+           _corr(row, url_hash="")]
+    assert store.save_corrections(conn, bad) == (0, 0)
+    assert store.pending_corrections(conn) == []
+
+
+def test_corrections_survive_article_purge(conn):
+    """Kalibrointiaineisto ei saa kadota retention-siivouksessa: purge koskee
+    artikkeleita, ei korjauksia."""
+    row = _analyzed(conn, "korkea")
+    store.save_corrections(conn, [_corr(row)])
+    conn.execute("UPDATE articles SET fetched_at='2020-01-01'")
+    assert store.purge_old(conn, config.RETENTION_DAYS) == 1
+    assert len(store.pending_corrections(conn)) == 1
+    assert store.apply_corrections(conn) == 0        # kohde on poissa, ei kaadu

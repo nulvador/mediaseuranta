@@ -1,8 +1,8 @@
 # Golf Media Monitor — käyttöohje viestintäpäällikölle
 
-Tämä työkalu kerää kahdesti viikossa uutiset ulkomaisilta golfliitoilta ja
-suomalaisilta lajiliitoilta, suodattaa Golfliiton kannalta kiinnostavat,
-suomentaa ne ja julkaisee salatun raportin verkkoon.
+Tämä työkalu kerää kahdesti viikossa uutiset ulkomaisilta golfliitoilta,
+suomalaisilta lajiliitoilta ja suomalaisesta mediasta, suodattaa Golfliiton
+kannalta kiinnostavat, suomentaa ne ja julkaisee salatun raportin verkkoon.
 
 **Raportti:** https://mediaseuranta.vercel.app
 **Salasana:** kysy edelliseltä ylläpitäjältä (ei ole kirjattu tähän tiedostoon)
@@ -14,16 +14,29 @@ tarvitse tehdä mitään — avaa vain linkki.
 
 ## 1. Raportin lukeminen
 
-Kaksi välilehteä: **Golfliitot maailmalla** ja **Suomalaiset lajiliitot**.
+Kolme välilehteä: **Golfliitot maailmalla**, **Suomalaiset lajiliitot** ja
+**Suomalainen media**.
+
+Kahdella ensimmäisellä värit vastaavat kysymykseen *voiko Golfliitto tehdä
+tälle jotain:*
 
 | Väri | Merkitys |
 |---|---|
-| 🔴 Punainen | Aitoa substanssia: sääntömuutos, tutkimus, iso kumppanuus, kriisi, kopioitava malli, majorit ja kilpailut joissa suomalaisia |
-| 🟡 Keltainen | Kiinnostava ilmiö, ei suoraan sovellettavissa |
-| 🟢 Vihreä | Hyvä tietää: nimitykset, palkinnot, arkijutut |
+| 🔴 Punainen | Sääntö- tai tasoitusmuutos, julkaistu tutkimus, käyttöön otettu malli tai digipalvelu, liittotason kumppanuus tai rahoitus, kriisi, safeguarding, suomalaisten osallistuminen ja menestys |
+| 🟡 Keltainen | Pitää tietää, vaikka ei voi soveltaa: aikomus ilman päätöstä, ilmiöt ja trendit, isäntäpaikkapäätökset muualla maailmassa |
+| 🟢 Vihreä | Hyvä tietää: nimitykset, palkinnot, juhlavuodet, arkijutut |
+
+**Media-välilehdellä kysymys on toinen:** *puhutaanko meistä, ja pitääkö
+reagoida?* Siellä 🔴 koskee Suomen golfin rakennetta, päätöstä tai mainetta,
+🟡 suomalaista pelaajaa, kotimaista kilpailua ja lajin näkyvyyttä, 🟢 muuta
+hyvä tietää -tavaraa.
+
+Kilpailutulokset ja sijoitukset karsiutuvat liittovälilehdiltä tarkoituksella —
+myös majoreista, jos suomalaisia ei ole mukana.
 
 Suodattimet: prioriteetti, teema, maa, vapaa haku ja "näytä vain uudet".
-Artikkeli näkyy raportissa **5 päivää** julkaisustaan.
+Artikkeli näkyy raportissa **7 päivää** julkaisustaan (tai havaitsemisestaan,
+jos julkaisupäivää ei tiedetä).
 
 **Tärkeää:** käännökset ja tiivistelmät ovat tekoälyn tekemiä luonnoksia.
 Tarkista faktat alkuperäislähteestä ennen kuin käytät sisältöä julkisesti.
@@ -50,14 +63,47 @@ Jos ajo on punainen, klikkaa se auki, kopioi virheteksti ja kysy Claudelta:
 
 ### Uutiset ovat vääriä tai epäkiinnostavia
 
-Tämä on normaalia ja korjattavissa. Ota kuvakaappaus raportista ja kysy:
+Tämä on normaalia. Korjaus tehdään kahdessa vaiheessa: ensin napista raportissa,
+ja vasta kun korjauksia on kertynyt, promptiin.
+
+**Vaihe 1 — korjaa suoraan raportissa.** Jokaisen kortin alalaidassa on neljä
+nappia:
+
+| Nappi | Mitä tekee |
+|---|---|
+| 🔴 🟡 🟢 | Vaihtaa jutun prioriteetin. Kortti siirtyy heti oikealle paikalle. |
+| ✕ | "Ei kuulu katsaukseen." Kortti himmenee ja valuu listan loppuun. |
+| peru | Poistaa korjauksen. |
+
+Jos portti karsi jutun jonka olisi pitänyt olla mukana, avaa **"Näytä kaikki
+löydetyt uutiset"** ja paina rivin "+ katsaukseen".
+
+Kirjoita napin viereen lyhyt perustelu jos ehdit ("yksittäinen turnaus", "vain
+aikomus, ei päätöstä"). Se on myöhemmin tärkeämpi kuin otsikko: otsikko kertoo
+mikä meni väärin, perustelu kertoo miksi — ja vain siitä syntyy uusi sääntö.
+
+Korjaus näkyy heti ja säilyy **tässä selaimessa**. Se ei vielä siirry
+järjestelmään: avaa raportin lopussa **"Omat korjaukset"**, paina *Kopioi
+leikepöydälle* ja anna teksti Claudelle:
+
+> Golf Media Monitor -projektissa (github.com/Suomen-Golfliitto-ry/mediaseuranta) tein
+> raportissa prioriteettikorjauksia. Tässä korjaus-JSON: [liitä]. Vie ne kantaan
+> ja generoi raportti uudelleen.
+
+Tämän jälkeen korjaus pitää paikkansa myös seuraavissa ajoissa. **Prompti ei
+muutu vielä tässä vaiheessa** — korjaus koskee vain sitä yhtä juttua.
+
+**Vaihe 2 — päivitä prompti, kun sama virhe toistuu.** Kun huomaat korjaavasi
+samaa asiaa kolmatta kertaa, tai kun korjauksia on kertynyt parikymmentä, kysy:
 
 > Golf Media Monitor -projektissa (github.com/Suomen-Golfliitto-ry/mediaseuranta) uutisten
-> priorisointi meni väärin. Lue projektin CLAUDE.md, jossa on priorisointisäännöt.
-> Nämä uutiset olivat väärässä laatikossa: [kerro otsikko ja mikä väri sen
-> kuuluisi olla]. Päivitä src/analyze.py:n promptit ja CLAUDE.md.
+> priorisointi menee toistuvasti väärin. Lue projektin CLAUDE.md, jossa on
+> priorisointisäännöt, ja aja `python -m src.main --list-corrections` nähdäksesi
+> tekemäni korjaukset. Päivitä src/analyze.py:n promptit ja CLAUDE.md.
 
-Muutos vaikuttaa **uusiin** uutisiin automaattisesti seuraavassa ajossa.
+Promptimuutos vaikuttaa **uusiin** uutisiin automaattisesti seuraavassa ajossa.
+Jo kerätyissä jutuissa se näkyy vasta kun ne uudelleenanalysoidaan — sen Claude
+osaa tehdä yhdelle välilehdelle kerrallaan.
 
 ### Jokin lähde on hiljentynyt
 
@@ -93,7 +139,8 @@ GitHubin salaisuuksiin. Salasanan vaihto: päivitä `REPORT_PASSWORD` ja aja
 työnkulku käsin — uusi salasana on voimassa seuraavasta raportista.
 
 **Kustannukset:** ei mitään. Gemini ilmaistasolla, GitHub Actions ilmainen
-julkisille repoille, GitHub Pages ilmainen.
+julkisille repoille, Vercelin hobby-taso ilmainen. Julkaisu on Vercelissä
+(osoite mediaseuranta.vercel.app), ei GitHub Pagesissa.
 
 ---
 
@@ -113,8 +160,11 @@ Kuka tahansa Pythonia osaava — tai Claude Code — pystyy jatkamaan tästä.
 
 ## 5. Tiedossa olevat rajoitteet
 
-- Osa liitoista (Ruotsi, Norja, Hollanti, R&A) on JS-sivustoja, joita ei voi
-  lukea suoraan. Ne haetaan Google Newsin kautta, mikä on epävarmempaa.
+- Osa lähteistä haetaan Google Newsin kautta, koska sivustolta ei saa suoraa
+  syötettä (mm. Scottish Golf, The Open, USGA ja useat lajiliitot). Se on
+  epävarmempaa: päivämäärä voi olla väärä ja linkki on uudelleenohjaus. Ruotsi
+  ja Hollanti luetaan nykyään suoraan RSS-syötteestä, Norja sivun HTML:stä ja
+  R&A sivukartasta.
 - Google News ei anna artikkeleille kuvia, joten korteissa on golfkenttä-kuvitus.
 - Tekoäly tekee joskus luokitteluvirheitä. Korjaus tapahtuu kohdan 2 ohjeella.
 - Sähköpostijakelu on koodissa valmiina mutta käyttämättä — vaatii liiton

@@ -50,6 +50,30 @@ CREATE TABLE IF NOT EXISTS runs (
     failed_batches INTEGER,
     health_json   TEXT
 );
+
+-- Ihmisen tekemät prioriteettikorjaukset. Oma taulu, ei sarake articles-taulussa,
+-- kahdesta syystä: korjaus säilyy vaikka artikkeli poistuisi RETENTION_DAYS-purgessa
+-- (kalibrointiaineisto ei saa kadota), ja mallin oma arvio jää talteen vierelle
+-- (was_priority), jotta katselmuksessa näkee mistä mihin arvio muuttui.
+CREATE TABLE IF NOT EXISTS corrections (
+    id           INTEGER PRIMARY KEY,
+    url_hash     TEXT UNIQUE NOT NULL,   -- kohdeartikkeli
+    title_key    TEXT,                   -- vara-avain, jos rivi hävisi dedupissa
+    tab          TEXT,
+    source_name  TEXT,
+    url          TEXT,
+    title        TEXT,                   -- alkukielinen otsikko (katselmusta varten)
+    title_fi     TEXT,
+    verdict      TEXT,                   -- priority | exclude | include
+    priority     TEXT,                   -- ihmisen taso, jos verdict=priority
+    was_priority TEXT,                   -- mallin taso korjaushetkellä
+    was_status   TEXT,
+    reason       TEXT,                   -- vapaa perustelu; katselmuksen tärkein kenttä
+    created_at   TEXT,
+    reviewed_at  TEXT                    -- asetettu, kun erä on käyty kalibroinnissa
+);
+CREATE INDEX IF NOT EXISTS idx_corrections_reviewed ON corrections(reviewed_at);
+CREATE INDEX IF NOT EXISTS idx_corrections_title_key ON corrections(title_key);
 """
 
 
@@ -227,11 +251,16 @@ def raw_articles(conn: sqlite3.Connection, days: int) -> list[dict]:
     vain sen merkitsemiseen, mikä on jo katsauksessa.
 
     Kentät pidetään suppeina, koska koko lista upotetaan HTML-tiedostoon.
+    Poikkeus: url_hash, title_key ja mallin priority ovat mukana, koska
+    raakalistalta voi merkitä karsitun jutun kuuluvaksi katsaukseen — korjaus
+    tarvitsee avaimen, ja katselmus tarvitsee tiedon siitä mitä malli arvioi.
+    Näytettävät sarakkeet eivät muutu: lista pysyy karuna.
 
     Sama ikkuna kaikilla välilehdillä, media mukaan lukien.
     """
     rows = conn.execute(
         f"""SELECT source_name, country, tab, title, url, status, published,
+                   url_hash, title_key, priority,
                    {_EFF_DATE} AS eff_date
            FROM articles
            WHERE {_EFF_DATE} >= ?
@@ -362,6 +391,130 @@ def purge_old(conn: sqlite3.Connection, days: int) -> int:
     säilyy RETENTION_DAYS-ikkunan ajan, jottei vanha uutinen palaa uutena."""
     cur = conn.execute(
         "DELETE FROM articles WHERE fetched_at < ?", (_cutoff(days),))
+    conn.commit()
+    return cur.rowcount
+
+
+# ------------------------------------------------------- ihmisen korjaukset
+# Kolme korjaustyyppiä. Kaikki ovat DETERMINISTISIÄ: ne eivät kutsu Geminiä
+# eivätkä muuta promptia, vaan pakottavat yhden artikkelin arvion. Promptin ja
+# porttien päivitys on erillinen, käsin tehtävä kalibrointikierros — sitä varten
+# korjaukset kertyvät tähän tauluun (ks. pending_corrections).
+#
+#   priority  ihmisen taso voittaa mallin tason
+#   exclude   "ei kuulu katsaukseen"  -> irrelevant
+#   include   "olisi pitänyt olla mukana" (raakalistalta) -> analyzed
+_VERDICTS = ("priority", "exclude", "include")
+_PRIORITIES = ("korkea", "keskitaso", "matala")
+
+_CORRECTION_FIELDS = (
+    "url_hash", "title_key", "tab", "source_name", "url", "title", "title_fi",
+    "verdict", "priority", "was_priority", "was_status", "reason",
+)
+
+
+def save_corrections(conn: sqlite3.Connection, items: list[dict]) -> tuple[int, int]:
+    """Tallenna raportista viedyt korjaukset. Palauttaa (uusia, päivitettyjä).
+
+    Avain on url_hash: saman jutun uusi korjaus korvaa vanhan, koska viimeinen
+    arvio on aina se joka on voimassa. Korvaus nollaa reviewed_at:n — muuten
+    jo katselmoidun jutun uusi korjaus jäisi seuraavan kierroksen ulkopuolelle.
+    """
+    now = datetime.datetime.now().isoformat(timespec="seconds")
+    added = updated = 0
+    for it in items:
+        h = (it.get("url_hash") or "").strip()
+        verdict = (it.get("verdict") or "").strip()
+        if not h or verdict not in _VERDICTS:
+            log.warning("Ohitettu korjaus: puutteellinen url_hash tai verdict (%r)", verdict)
+            continue
+        prio = (it.get("priority") or "").strip()
+        if prio and prio not in _PRIORITIES:
+            log.warning("Ohitettu korjaus %s: tuntematon prioriteetti %r", h[:8], prio)
+            continue
+        vals = {k: (it.get(k) or "") for k in _CORRECTION_FIELDS}
+        vals["url_hash"], vals["verdict"], vals["priority"] = h, verdict, prio
+        existed = conn.execute(
+            "SELECT 1 FROM corrections WHERE url_hash=?", (h,)).fetchone() is not None
+        cols = ", ".join(_CORRECTION_FIELDS)
+        marks = ", ".join("?" * len(_CORRECTION_FIELDS))
+        conn.execute(
+            f"""INSERT INTO corrections ({cols}, created_at, reviewed_at)
+                VALUES ({marks}, ?, NULL)
+                ON CONFLICT(url_hash) DO UPDATE SET
+                    verdict=excluded.verdict, priority=excluded.priority,
+                    reason=excluded.reason, was_priority=excluded.was_priority,
+                    was_status=excluded.was_status, title_key=excluded.title_key,
+                    created_at=excluded.created_at, reviewed_at=NULL""",
+            tuple(vals[k] for k in _CORRECTION_FIELDS) + (it.get("created_at") or now,),
+        )
+        updated += existed
+        added += not existed
+    conn.commit()
+    return added, updated
+
+
+def apply_corrections(conn: sqlite3.Connection) -> int:
+    """Pakota ihmisen korjaukset artikkeleihin. Palauttaa muuttuneiden rivien määrän.
+
+    Ajetaan ANALYYSIN JÄLKEEN joka ajossa, ei kertaluontoisena UPDATEna: muuten
+    tuore Gemini-arvio (tai --reanalyze) kirjoittaisi korjauksen yli heti
+    seuraavassa ajossa. Idempotentti — turvallinen ajaa kuinka usein tahansa.
+
+    Kohde etsitään ensin url_hashilla ja sitten title_keyllä: dedup jättää
+    parista vain toisen rivin, joten korjattu rivi voi hävitä ja sen kaksonen
+    jäädä eloon.
+    """
+    changed = 0
+    for c in conn.execute("SELECT * FROM corrections").fetchall():
+        row = conn.execute(
+            "SELECT id, status, priority, COALESCE(title_fi,'') AS title_fi "
+            "FROM articles WHERE url_hash=?", (c["url_hash"],)).fetchone()
+        if row is None and c["title_key"]:
+            row = conn.execute(
+                "SELECT id, status, priority, COALESCE(title_fi,'') AS title_fi "
+                "FROM articles WHERE title_key=? ORDER BY id LIMIT 1",
+                (c["title_key"],)).fetchone()
+        if row is None:
+            continue                      # juttu on purgattu tai poistettu lähteen mukana
+
+        status, priority = row["status"], row["priority"]
+        if c["verdict"] == "exclude":
+            if status in ("analyzed", "stale", "new"):
+                status = "irrelevant"
+        elif c["verdict"] in ("priority", "include"):
+            if c["priority"]:
+                priority = c["priority"]
+            # Käännös puuttuu vain jos juttua ei ole koskaan analysoitu. Silloin
+            # status jätetään ennalleen: juttu analysoidaan seuraavassa ajossa ja
+            # tämä sama korjaus nostaa sen mukaan analyysin jälkeen.
+            if status in ("irrelevant", "expired") and row["title_fi"]:
+                status = "analyzed"
+
+        if (status, priority) != (row["status"], row["priority"]):
+            conn.execute("UPDATE articles SET status=?, priority=? WHERE id=?",
+                         (status, priority, row["id"]))
+            changed += 1
+    conn.commit()
+    return changed
+
+
+def pending_corrections(conn: sqlite3.Connection) -> list[dict]:
+    """Katselmoimattomat korjaukset, vanhin ensin — kalibrointikierroksen aineisto."""
+    rows = conn.execute(
+        "SELECT * FROM corrections WHERE reviewed_at IS NULL "
+        "ORDER BY created_at, id").fetchall()
+    return [dict(r) for r in rows]
+
+
+def mark_corrections_reviewed(conn: sqlite3.Connection) -> int:
+    """Merkitse katselmoimattomat käsitellyiksi promptin päivityksen jälkeen.
+
+    Rivit jäävät kantaan: sama erä on promptimuutoksen jälkeen se testiaineisto,
+    jota vasten muutoksen osuvuuden voi mitata."""
+    now = datetime.datetime.now().isoformat(timespec="seconds")
+    cur = conn.execute(
+        "UPDATE corrections SET reviewed_at=? WHERE reviewed_at IS NULL", (now,))
     conn.commit()
     return cur.rowcount
 

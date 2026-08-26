@@ -327,6 +327,108 @@ ristiriitaiset vanhat säännöt. Älä kirjoita samaa sääntöä kahteen tasoo
 jos raja on aito, kirjoita se **vastakkainasetteluna** ("liittotasoinen =
 punainen, turnaustason = keltainen"), ei kahtena erillisenä sääntönä.
 
+## Ihmisen korjaukset raportissa
+
+Viestintäpäällikkö voi korjata yksittäisen jutun arvion suoraan raportissa:
+kortin alalaidassa on kolme tasonappia ja ✕ ("ei kuulu katsaukseen"), ja
+raakalistalla "+ katsaukseen". Korjaus vaikuttaa heti näkymään ja siirtyy
+kantaan `--apply-corrections`-ajolla.
+
+**Prompti ja portit EIVÄT päivity automaattisesti — tämä on suunnittelupäätös,
+ei puuttuva ominaisuus.** Esimerkkien liimaaminen promptiin ilman ihmisen
+päätöstä siitä, kuuluuko sääntö porttiin vai kohtaan 5, on juuri se virhe joka
+tuotti kolme peräkkäistä virhekierrosta 7/2026. Korjaukset kertyvät siksi
+`corrections`-tauluun, ja prompti päivitetään käsin kalibrointikierroksella.
+
+### Kolme korjaustyyppiä, kaikki deterministisiä
+
+| verdict | mistä | vaikutus | Gemini-kutsuja |
+|---|---|---|---|
+| `priority` | kortin tasonappi | ihmisen taso voittaa mallin tason | 0 |
+| `exclude` | kortin ✕ | status → `irrelevant` | 0 |
+| `include` | raakalistan "+ katsaukseen" | status → `analyzed` | 0 |
+
+`include` on ilmainen, koska **karsituilla riveillä on jo käännös kannassa**:
+`save_analysis` tallentaa `title_fi`/`summary_fi`/`priority` myös
+`relevant=false`-riveille. Poikkeus on juttu jota ei ole koskaan analysoitu
+(`new`/`expired`, ei käännöstä): silloin status jätetään ennalleen, juttu
+analysoidaan normaalisti ja sama korjaus nostaa sen mukaan analyysin jälkeen.
+
+### apply_corrections ajetaan JOKA ajossa, analyysin jälkeen
+
+Ei kertaluontoisena UPDATEna. Tuore Gemini-arvio — tai `--reanalyze` — pyyhkisi
+muuten korjauksen heti seuraavassa ajossa. Sijainti `main.py`:ssä on siksi
+analyysin jälkeen ja raportin edellä, ja funktio on idempotentti. Testi
+`test_correction_survives_reanalysis` lukitsee tämän.
+
+Kohde etsitään ensin `url_hash`illa ja sitten `title_key`llä: dedup jättää
+parista vain toisen rivin, joten korjattu rivi voi hävitä ja kaksonen jäädä.
+
+### Kaksi kerrosta, koska raportti on staattinen tiedosto
+
+Julkaistu raportti on salattu HTML Vercelissä ilman backendiä, joten selain ei
+voi kirjoittaa kantaan. Siksi korjaus elää kahdessa paikassa:
+
+1. **`localStorage`** (avain `golfkatsaus.korjaukset`, per selain) — korjaus
+   näkyy heti ja säilyy myös seuraavan ajon uudessa HTML-tiedostossa, koska
+   avain on `url_hash`. Kaikki kutsut ovat try/catchissa: yksityinen
+   selainikkuna heittää poikkeuksen, eikä raportti saa kaatua siihen.
+2. **`corrections`-taulu** — kun JSON on viety `--apply-corrections`-ajolla.
+   Sen jälkeen sama arvo tulee jo upotetussa datassa ja kerros 1 muuttuu
+   tyhjäkäynniksi.
+
+Siirto on käsityö (kopioi JSON → tiedosto → aja komento). Automaattinen reitti
+olisi Vercel Function + GitHub-token tai valmiiksi täytetty GitHub-issue;
+kumpaakaan ei ole tehty, koska kumpikin lisää salaisuuden tai julkisen
+kirjoitusendpointin ylläpidettäväksi.
+
+### Mitä korjaus EI tee
+
+- **Ei anna jutulle lisäaikaa.** Korjaus näkyy niin kauan kuin juttu on
+  `REPORT_DAYS`-ikkunassa. 5 pv vanha korjattu juttu näkyy enää kaksi päivää.
+- **Ei yleisty uusiin juttuihin.** Avain on tietyn jutun `url_hash`.
+- **Ei kirjaa vahvistusta.** Mallin oman tason painaminen poistaa korjauksen
+  sen sijaan että kirjaisi muutoksen — muuten aineistoon kertyisi tyhjiä rivejä.
+- **Ei piilota ✕:llä merkittyä heti.** Kortti jää näkyviin himmeänä listan
+  loppuun, jotta vahinkopainallus näkyy ja on peruttavissa. Se katoaa vasta
+  seuraavassa generoinnissa.
+
+### Korjaukset ovat kalibrointiaineistoa — ja ne ovat vinoja
+
+`corrections` on oma taulu eikä sarake `articles`-taulussa kahdesta syystä:
+korjaus säilyy vaikka artikkeli poistuisi `RETENTION_DAYS`-purgessa, ja mallin
+oma arvio jää talteen vierelle (`was_priority`), jotta katselmuksessa näkee
+mistä mihin arvio muuttui. `reason` on katselmuksen tärkein kenttä: otsikko
+kertoo *mikä* korjattiin, perustelu *miksi* — ja vain jälkimmäisestä syntyy
+promptisääntö.
+
+**Aineisto painottuu väistämättä laskuihin.** Ylinosto näkyy punaisena kortin
+kärjessä; portin karsintavirhe näkyy vain raakalistasta. Jos promptia viritetään
+pelkällä korjauslistalla, koko jakauma valuu alaspäin. Siksi
+`--list-corrections` tulostaa jakauman suunnittain — lue se ennen kuin muutat
+promptia, ja käy raakalista välillä läpi vaikkei mikään ärsyttäisi.
+
+**Laukaisin on toisto, ei kappalemäärä.** Sama sääntö korjattuna 3 kertaa →
+korjaa heti (kapea muutos yhteen paikkaan). 30–40 korjausta → varsinainen
+kalibrointikierros, jossa prompti luetaan kokonaisuutena ja muutos kuiva-ajetaan
+tätä aineistoa vasten. Kahdella ajolla viikossa pelkkä kappalemäärä tarkoittaisi
+3–4 kuukauden odotusta systemaattisen porttivuodon kanssa.
+
+`--mark-reviewed` merkitsee erän käsitellyksi. Rivit jäävät kantaan, koska sama
+erä on promptimuutoksen jälkeen se testiaineisto, jota vasten osuvuuden voi
+mitata. Uusi korjaus samaan juttuun korvaa vanhan ja nollaa `reviewed_at`:n.
+
+Komennot:
+
+```
+--apply-corrections PATH   vie raportista kopioitu JSON kantaan
+--list-corrections         katselmoimattomat + jakauma suunnittain
+--mark-reviewed            merkitse erä käsitellyksi kalibroinnin jälkeen
+```
+
+Yksikään näistä ei kuluta Gemini-kutsuja. `--reanalyze` on ainoa tapa nähdä
+promptimuutos jo kerätyissä jutuissa, ja se rajataan yhteen välilehteen.
+
 ## Arkkitehtuuri
 
 ```
@@ -335,14 +437,15 @@ sources.yaml       lähteet (RSS → json_api → sitemap → HTML → Google Ne
 src/config.py      polut, .env, vakiot
 src/sources.py     YAML-lataus, Google News -lokaalit per kieli
 src/fetch.py       rinnakkainen keruu, 15 s timeout, alidomain-suodatus
-src/store.py       SQLite: dedup, statukset, ikäsäännöt, migraatiot
+src/store.py       SQLite: dedup, statukset, ikäsäännöt, korjaukset, migraatiot
 src/analyze.py     Gemini structured output; 3 promptia (golf/lajiliitot/media)
 src/report.py      HTML-raportti (3 välilehteä; media on oma näkymänsä)
 src/encrypt.py     AES-GCM-salaus web-julkaisuun
 src/emailer.py     valinnainen SMTP (odottaa tunnuksia)
 src/main.py        pääohjelma
-run.sh             ajo + salaus + git push GitHub Pagesiin
-deploy/            launchd-ajastus (ti + pe klo 10:15)
+run.sh             ajo + salaus + git push (Vercel julkaisee docs/index.html)
+deploy/            launchd-ajastus paikalliseen ajoon (ti + pe klo 10:15);
+                   tuotannon ajastus on GitHub Actionsissa
 ```
 
 ## Lähdesäännöt (sources.yaml)

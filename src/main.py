@@ -6,11 +6,18 @@ Käyttö:
     python -m src.main --report-only       # generoi raportti nykyisestä datasta
     python -m src.main --import-json PATH  # tuo vanhan projektin articles.json
     python -m src.main --no-email          # älä lähetä sähköpostia
+
+    python -m src.main --apply-corrections korjaukset.json --report-only
+                                           # vie raportista viedyt korjaukset kantaan
+    python -m src.main --list-corrections  # katselmoimattomat korjaukset + jakauma
+    python -m src.main --mark-reviewed     # merkitse erä käsitellyksi kalibroinnin jälkeen
 """
 import argparse
 import datetime
+import json
 import logging
 import sys
+from pathlib import Path
 
 from . import config, store
 from .analyze import analyze_pending
@@ -34,6 +41,36 @@ def setup_logging() -> None:
         logging.getLogger(noisy).setLevel(logging.WARNING)
 
 
+def _load_corrections(path: str) -> list[dict]:
+    """Lue raportista kopioitu korjaus-JSON.
+
+    Hyväksyy sekä listan että url_hash-avaimisen objektin, koska raportin
+    localStorage on objekti ja vientinappi antaa listan — kumpi tahansa voi
+    päätyä liitetyksi tiedostoon."""
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    if isinstance(data, dict):
+        data = list(data.values())
+    if not isinstance(data, list):
+        raise ValueError("Odotettiin listaa tai objektia korjauksista")
+    return data
+
+
+_PRIO_RANK = {"korkea": 0, "keskitaso": 1, "matala": 2}
+
+
+def _correction_direction(c: dict) -> str:
+    """Korjauksen suunta. Tämä on se luku, joka paljastaa aineiston vinouman:
+    ylinostot huomaa punaisena kortin kärjessä, portin karsintavirheen vain
+    raakalistasta, joten 'laskettu' kertyy väistämättä nopeammin."""
+    if c["verdict"] == "exclude":
+        return "pois katsauksesta"
+    if c["verdict"] == "include":
+        return "nostettu katsaukseen"
+    was = _PRIO_RANK.get(c.get("was_priority") or "", 9)
+    now = _PRIO_RANK.get(c.get("priority") or "", 9)
+    return "nostettu" if now < was else "laskettu" if now > was else "muutettu"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Golf Media Monitor v2")
     parser.add_argument("--skip-analysis", action="store_true")
@@ -51,6 +88,15 @@ def main() -> int:
     parser.add_argument("--restore", action="store_true",
                         help="palauta 'new'-tilaan jääneet jo analysoidut artikkelit "
                              "näkyviin (korjaa keskeytyneen uudelleenanalyysin)")
+    parser.add_argument("--apply-corrections", metavar="PATH",
+                        help="vie raportista kopioidut prioriteettikorjaukset "
+                             "kantaan (ei kuluta Gemini-kutsuja)")
+    parser.add_argument("--list-corrections", action="store_true",
+                        help="tulosta katselmoimattomat korjaukset ja niiden "
+                             "jakauma — kalibrointikierroksen aineisto")
+    parser.add_argument("--mark-reviewed", action="store_true",
+                        help="merkitse korjaukset käsitellyiksi promptin "
+                             "päivityksen jälkeen (rivit jäävät kantaan)")
     parser.add_argument("--import-json", metavar="PATH")
     args = parser.parse_args()
 
@@ -64,6 +110,50 @@ def main() -> int:
         n = store.import_legacy_json(conn, args.import_json)
         log.info("Migraatio valmis: %d artikkelia tuotu", n)
         return 0
+
+    if args.list_corrections:
+        rows = store.pending_corrections(conn)
+        log.info("Katselmoimattomia korjauksia: %d", len(rows))
+        by_dir: dict[str, int] = {}
+        by_tab: dict[str, int] = {}
+        for c in rows:
+            d = _correction_direction(c)
+            by_dir[d] = by_dir.get(d, 0) + 1
+            by_tab[c["tab"] or "?"] = by_tab.get(c["tab"] or "?", 0) + 1
+        for d, n in sorted(by_dir.items(), key=lambda kv: -kv[1]):
+            log.info("  %-22s %d", d, n)
+        for t, n in sorted(by_tab.items(), key=lambda kv: -kv[1]):
+            log.info("  %-22s %d", t, n)
+        for c in rows:
+            log.info("%s · %s · %s → %s%s", c["created_at"][:10], c["source_name"],
+                     c["was_priority"] or "karsittu", _correction_direction(c),
+                     f' · {c["reason"]}' if c["reason"] else "")
+            log.info("    %s", c["title_fi"] or c["title"])
+        if len(rows) >= 30:
+            log.info("30 korjausta täynnä — aika lukea prompti kokonaisuutena "
+                     "ja kuiva-ajaa muutos tätä aineistoa vasten.")
+        conn.close()
+        return 0
+
+    if args.mark_reviewed:
+        n = store.mark_corrections_reviewed(conn)
+        log.info("Merkitty käsitellyksi: %d korjausta (rivit jäävät kantaan "
+                 "testiaineistoksi)", n)
+        conn.close()
+        return 0
+
+    if args.apply_corrections:
+        try:
+            items = _load_corrections(args.apply_corrections)
+        except (OSError, ValueError) as e:
+            log.error("Korjaustiedostoa ei voitu lukea (%s): %s",
+                      args.apply_corrections, e)
+            log.error("Odotettu sisältö on raportin \"Omat korjaukset\" -paneelista "
+                      "kopioitu JSON sellaisenaan.")
+            conn.close()
+            return 1
+        added, updated = store.save_corrections(conn, items)
+        log.info("Korjaukset: %d uutta, %d päivitettyä", added, updated)
 
     for source_id in (args.purge or []):
         n = store.purge_source(conn, source_id)
@@ -152,7 +242,15 @@ def main() -> int:
         else:
             log.info("Ei analysoitavaa.")
 
-    # ── Vaihe 3: raportti ─────────────────────────────────────────────
+    # ── Vaihe 3: ihmisen korjaukset analyysin päälle ──────────────────
+    # Tämä ajetaan JOKA ajossa eikä vain --apply-corrections-kutsussa: tuore
+    # Gemini-arvio kirjoittaisi muuten korjauksen yli heti seuraavassa ajossa.
+    # Sijainti on tarkoituksellisesti analyysin jälkeen ja raportin edellä.
+    fixed = store.apply_corrections(conn)
+    if fixed:
+        log.info("Ihmisen korjaukset: %d artikkelia asetettu korjattuun arvioon", fixed)
+
+    # ── Vaihe 4: raportti ─────────────────────────────────────────────
     run_summary = {"new_articles": new_count, "analyzed": analyzed,
                    "previous_run_at": previous_run_at}
     report_arts = store.report_articles(conn, config.REPORT_DAYS)
@@ -165,7 +263,7 @@ def main() -> int:
     log.info("Raportti: %s (%d artikkelia, joista mediaa %d; raakalistalla %d)",
              path, len(report_arts), media_arts, len(raw_arts))
 
-    # ── Vaihe 4: sähköposti (valinnainen) ─────────────────────────────
+    # ── Vaihe 5: sähköposti (valinnainen) ─────────────────────────────
     if not args.no_email:
         recent_cutoff = (datetime.date.today()
                          - datetime.timedelta(days=config.LOOKBACK_DAYS)).isoformat()
