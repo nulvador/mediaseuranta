@@ -4,7 +4,7 @@ Tämä työkalu kerää kahdesti viikossa uutiset ulkomaisilta golfliitoilta ja
 suomalaisilta lajiliitoilta, suodattaa Golfliiton kannalta kiinnostavat,
 suomentaa ne ja julkaisee salatun raportin verkkoon.
 
-**Raportti:** https://nulvador.github.io/mediaseuranta/
+**Raportti:** https://mediaseuranta.vercel.app
 **Salasana:** kysy edelliseltä ylläpitäjältä (ei ole kirjattu tähän tiedostoon)
 
 Raportti päivittyy automaattisesti **tiistaisin ja perjantaisin**. Sinun ei
@@ -37,14 +37,14 @@ Avaa Claude, liitä alla oleva kehote ja kerro mitä havaitsit.
 
 ### Raportti ei ole päivittynyt
 
-1. Mene osoitteeseen https://github.com/nulvador/mediaseuranta
-2. Valitse ylhäältä **Actions** → **Mediaseuranta**
+1. Mene osoitteeseen https://github.com/Suomen-Golfliitto-ry/mediaseuranta
+2. Valitse ylhäältä **Actions** → **Mediaseuranta** (vasemmasta reunasta)
 3. Näet listan ajoista. Vihreä ✅ = onnistui, punainen ❌ = epäonnistui.
 4. Voit käynnistää ajon käsin: valitse **Run workflow** → **Run workflow**.
 
 Jos ajo on punainen, klikkaa se auki, kopioi virheteksti ja kysy Claudelta:
 
-> Golf Media Monitor -projektin (github.com/nulvador/mediaseuranta) GitHub
+> Golf Media Monitor -projektin (github.com/Suomen-Golfliitto-ry/mediaseuranta) GitHub
 > Actions -ajo epäonnistui. Tässä virheilmoitus: [liitä teksti]. Mikä on vialla
 > ja miten korjaan sen?
 
@@ -52,7 +52,7 @@ Jos ajo on punainen, klikkaa se auki, kopioi virheteksti ja kysy Claudelta:
 
 Tämä on normaalia ja korjattavissa. Ota kuvakaappaus raportista ja kysy:
 
-> Golf Media Monitor -projektissa (github.com/nulvador/mediaseuranta) uutisten
+> Golf Media Monitor -projektissa (github.com/Suomen-Golfliitto-ry/mediaseuranta) uutisten
 > priorisointi meni väärin. Lue projektin CLAUDE.md, jossa on priorisointisäännöt.
 > Nämä uutiset olivat väärässä laatikossa: [kerro otsikko ja mikä väri sen
 > kuuluisi olla]. Päivitä src/analyze.py:n promptit ja CLAUDE.md.

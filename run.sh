@@ -12,7 +12,7 @@ pip install -q -r requirements.txt
 
 python -m src.main "$@"
 
-# Julkaise raportti GitHub Pagesiin, jos julkaisu on kytketty (docs/-kansio + git remote)
+# Julkaise raportti webiin (Vercel seuraa docs/-kansiota), jos julkaisu on kytketty
 if [ -d docs ] && git remote get-url origin >/dev/null 2>&1 && [ -f output/report.html ]; then
   publish_ok=1
   # Salaa raportti ennen julkaisua, jos REPORT_PASSWORD on asetettu .env:ssä

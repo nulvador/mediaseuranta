@@ -538,7 +538,24 @@ korjaus hakusanassa.
 
 `run.sh` salaa raportin (`REPORT_PASSWORD` .env:stä) ja pushaa `docs/index.html`.
 Jos salaus epäonnistuu, julkaisu ohitetaan — salaamatonta ei koskaan pushata.
-Osoite: https://nulvador.github.io/mediaseuranta/
+Osoite: https://mediaseuranta.vercel.app
+Repo: https://github.com/Suomen-Golfliitto-ry/mediaseuranta
+Ajastus: GitHub Actions (.github/workflows/monitor.yml), ti+pe.
+Avaimet: GitHubin repo-salaisuudet GEMINI_API_KEY ja REPORT_PASSWORD.
+
+**Hostaus on Vercel**, ei GitHub Pages (26.8.2026). Vercel-projektin Root
+Directory on `docs`, ei buildia eikä ympäristömuuttujia: se julkaisee
+`docs/index.html`-tiedoston sellaisenaan jokaisesta `main`-pushista. Ketju on
+siis Actions-ajo → commit `docs/index.html` → Vercel deploy.
+
+**`docs/`-kansiota ei saa poistaa** vaikka Pages on lopetettu — se on Vercelin
+lähde, ei Pagesin jäänne. Pagesin lopetus on pelkkä GitHubin asetus
+(Settings → Pages → Source: None), ei repomuutos, joten mikään koodissa ei
+viittaa siihen. Ainoa jälki oli `run.sh`:n kommentti, joka on korjattu.
+
+Vanha Pages-osoite (`suomen-golfliitto-ry.github.io/mediaseuranta`) lakkaa
+toimimasta kun asetus otetaan pois. Jos joku raportoi kuolleen linkin, se on
+todennäköisesti tämä — ohjaa Vercel-osoitteeseen.
 
 ## Muuta
 

@@ -1,20 +1,43 @@
-# Mediakatsauksen julkaisu Verceliin
+# Mediakatsauksen julkaisu — Vercel
 
-Ohje digipäällikölle. Tavoite: julkaista mediakatsausraportti Vercelissä.
+Julkaisun tila ja ylläpito-ohje. Import Verceliin on **tehty 26.8.2026**, ja
+Vercel on nyt raportin virallinen osoite.
 
-Repo on jo siirretty liiton organisaatioon, joten tarvittava työ on yksi import
-Vercelissä. **Ei buildia, ei riippuvuuksia, ei ympäristömuuttujia.**
-
+- **Osoite: https://mediaseuranta.vercel.app**
 - Repo: `github.com/Suomen-Golfliitto-ry/mediaseuranta`
-- Nykyinen osoite (GitHub Pages): https://suomen-golfliitto-ry.github.io/mediaseuranta/
-- Julkaistava tiedosto: **`docs/index.html`** (n. 270 kt)
+- Julkaistava tiedosto: **`docs/index.html`** (n. 280 kt)
 
-## Mikä on jo tehty
+## Tila
 
 - Repo siirretty henkilökohtaiselta tililtä organisaatioon
   `Suomen-Golfliitto-ry` (25.8.2026).
-- Paikallinen remote päivitetty ja push-oikeus varmistettu toimivaksi.
-- GitHub Pages toimii uudessa osoitteessa.
+- Ajo siirretty pilveen: **GitHub Actions**
+  (`.github/workflows/monitor.yml`), ti + pe. Ei riipu kenenkään koneesta.
+  Avaimet ovat GitHubin repo-salaisuuksina (`GEMINI_API_KEY`,
+  `REPORT_PASSWORD`).
+- Vercel-import tehty ja todettu toimivaksi: Vercel ja vanha Pages-osoite
+  palvelivat tavulleen samaa tiedostoa.
+- **Tekemättä: GitHub Pages pitää ottaa pois käytöstä** (ks. alla).
+
+Ketju on: Actions-ajo → commit `docs/index.html` → Vercel deploy. Vercel on
+pelkkä staattinen tiedostojakelu; keruu, Gemini-analyysi ja SQLite-kanta eivät
+kuulu sille lainkaan.
+
+## Vercel-projektin asetukset
+
+| Asetus | Arvo |
+|---|---|
+| Framework Preset | **Other** |
+| Root Directory | **`docs`** |
+| Build Command | *tyhjä* |
+| Install Command | *tyhjä* |
+| Output Directory | *tyhjä* |
+| Environment Variables | *ei mitään* |
+| Production Branch | `main` |
+
+GitHub App -oikeudet on rajattu: **Only select repositories** → `mediaseuranta`.
+Älä laajenna "All repositories" -tasolle — Vercelin ei tarvitse nähdä liiton
+muita repoja.
 
 ## Mitä julkaistaan
 
@@ -27,41 +50,25 @@ Yksi tiedosto: `docs/index.html`.
   siis kulje palvelimen kautta eikä ole palautettavissa tiedostosta.
 - Sivulla on `<meta name="robots" content="noindex, nofollow">`.
 
-Muu projekti (uutisten keruu, Gemini-analyysi, SQLite-kanta) ajetaan
-viestintäpäällikön koneella launchd-ajastuksella tiistaisin ja perjantaisin klo
-10:15, ja se pushaa valmiin raportin repoon. **Se ei kuulu Verceliin lainkaan.**
-Vercel on pelkkä staattinen tiedostojakelu.
+## GitHub Pagesin lopetus
 
-## Tee tämä — import Verceliin
+Pages jäi Vercelin rinnalle rinnakkaiseksi julkaisuksi. Se lopetetaan, koska
+Vercel on pääasiallinen hostaus:
 
-Olet organisaation owner, joten hyväksyntäkierroksia ei tarvita.
+**Settings → Pages → Source: None** repossa `Suomen-Golfliitto-ry/mediaseuranta`.
 
-1. Vercel → **Add New → Project → Import Git Repository**.
-2. Jos organisaation repot eivät näy listassa: **Adjust GitHub App Permissions**
-   → valitse organisaatio `Suomen-Golfliitto-ry` → **Only select repositories** →
-   `mediaseuranta` → **Install**.
-   Älä valitse "All repositories" — Vercelin ei tarvitse nähdä liiton muita
-   repoja.
-3. Projektin asetukset:
+Kaksi asiaa, jotka on hyvä tietää ennen kuin painaa:
 
-   | Asetus | Arvo |
-   |---|---|
-   | Framework Preset | **Other** |
-   | Root Directory | **`docs`** |
-   | Build Command | *tyhjä* |
-   | Install Command | *tyhjä* |
-   | Output Directory | *tyhjä* |
-   | Environment Variables | *ei mitään* |
-
-4. **Deploy.** Production Branch on `main` (oletus).
-
-Tämän jälkeen jokainen ajo (ti ja pe klo 10:15) julkaisee raportin
-automaattisesti. Ajoskriptiin ei tarvita muutoksia.
+1. **`docs/`-kansiota ei poisteta.** Se on Vercelin Root Directory, ei Pagesin
+   jäänne. Pagesin lopetus on pelkkä GitHubin asetus, ei repomuutos — mikään
+   koodissa ei viittaa Pagesiin.
+2. **Vanha osoite kuolee.** `suomen-golfliitto-ry.github.io/mediaseuranta`
+   lakkaa toimimasta. Jos osoite on jaettu jollekulle, kerro uusi. Käyttöohje
+   (`KAYTTOOHJE.md`) ja `CLAUDE.md` osoittavat jo Verceliin.
 
 ## Toimivuuden testi
 
-1. Vercelin antama osoite avautuu salasanakyselyyn
-   ("🔒 Golfliiton mediakatsaus").
+1. Osoite avautuu salasanakyselyyn ("🔒 Golfliiton mediakatsaus").
 2. Salasanalla raportti avautuu ja välilehdet (golfliitot / lajiliitot / media)
    toimivat.
 
@@ -70,7 +77,7 @@ Vercelissä.
 
 Muuta testattavaa ei ole — sivu on täysin staattinen eikä kutsu mitään ulkoista.
 
-## Kolme asiaa, jotka tarvitsevat kannanoton
+## Kaksi asiaa, jotka tarvitsevat vielä kannanoton
 
 **1. Vercelin preview-deploymentit ovat oletuksena julkisia osoitteita.**
 Sivun oma salasanasuojaus riittää suojaksi, mutta jos halutaan vyö ja henkselit,
@@ -85,15 +92,17 @@ aineisto on julkisista uutisista koostettu ja siirtyy salattuna — mutta Vercel
 näkee kävijöiden IP-osoitteet ja käyttötiedot. Tämä on syytä olla tiedossa ennen
 kuin osoite jaetaan liiton väelle.
 
-**3. Repon näkyvyys.** Repo on nyt **julkinen**, eli `CLAUDE.md`, `sources.yaml`
-ja `src/analyze.py` — koko mediaseurannan priorisointilogiikka ja
-kalibrointihistoria — ovat kenen tahansa luettavissa. Salattu raportti on
-suojattu, lähdekoodi ei.
+## Repon näkyvyys — este poistui
 
-Kun Vercel julkaisee sivun, reposta voi tehdä yksityisen ja sivu toimii silti.
-Ehto: **yksityinen repo + GitHub Pages vaatii maksullisen GitHub Team -tason,
-Vercel ei.** Valinta on siis "yksityinen repo ja vain Vercel" tai "julkinen repo
-ja Pages rinnalla".
+Repo on **julkinen**, eli `CLAUDE.md`, `sources.yaml` ja `src/analyze.py` — koko
+mediaseurannan priorisointilogiikka ja kalibrointihistoria — ovat kenen tahansa
+luettavissa. Salattu raportti on suojattu, lähdekoodi ei.
+
+Kun Pages on pois päältä, reposta voi tehdä yksityisen ja sivu toimii silti:
+**yksityinen repo + GitHub Pages olisi vaatinut maksullisen GitHub Team -tason,
+Vercel ei.** Aiempi valinta oli "yksityinen repo ja vain Vercel" tai "julkinen
+repo ja Pages rinnalla" — Pagesin lopetus tekee ensimmäisestä mahdollisen.
+Huomaa, että yksityinen repo ei vaikuta Actions-ajoon eikä Vercelin deployhin.
 
 ## Yhteystiedot
 
